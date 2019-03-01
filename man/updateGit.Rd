@@ -23,3 +23,12 @@ Fetches all branches, then pulls the identified branch from git,
 then runs a digest on the local folders. If that digest is different
 as a previous one, then the function will run \code{devtools::install}.
 }
+\examples{
+\dontrun{
+# This will pull development branch of all these packages, and install them
+#    all, if there are any file changes in each respective directory
+allPkgs <- c("quickPlot", "reproducible", "SpaDES.core", "SpaDES.tools",
+             "pemisc", "map", "LandR", "pedev")
+updateGit(allPkgs)
+}
+}
