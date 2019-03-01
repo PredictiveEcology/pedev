@@ -1,0 +1,32 @@
+Package: pedev
+Type: Package
+Title: Predictive Ecology development tools
+Description: Miscellaneous development tools developed by the Predictive Ecology Group
+  (<http://predictiveecology.org>).
+URL: 
+    http://pedev.predictiveecology.org,
+    https://github.com/PredictiveEcology/pedev
+Date: 2019-03-01
+Version: 0.0.1.9000
+Authors@R: c(
+    person("Eliot J B", "McIntire", email = "eliot.mcintire@canada.ca",
+    role = c("aut", "cre"), comment=c(ORCID = "0000-0002-6914-8316")),
+    person("Her Majesty the Queen in Right of Canada, as represented by the Minister of Natural Resources Canada",
+    role = "cph")
+    )
+Depends:
+    R (>= 3.3.0)
+Imports:
+    crayon,
+    data.table,
+    igraph,
+    reproducible,
+Encoding: UTF-8
+Language: en-CA
+License: GPL-3
+VignetteBuilder: knitr, rmarkdown
+BugReports: https://github.com/PredictiveEcology/pedev/issues
+ByteCompile: yes
+LazyData: true
+RoxygenNote: 6.1.1
+
