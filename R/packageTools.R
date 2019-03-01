@@ -6,13 +6,16 @@
 #'
 #' @param pkgs A character vector of package names, which is actually
 #'   the path names of the packages. i.e., must be absolute or relative
-#'   path. Defaults to current directory. It
+#'   path. Defaults to current directory. It will also check in "..",
+#'   i.e., one folder up from the current active folder if it doesn't find
+#'   \code{pkgs} in the current folder.
 #' @export
 #' @param install Logical. If TRUE, then it will run devtools::install if
 #'   there is new content
-#' @param branch The branch to pull from.
+#' @param branch The branch to pull from. Default is \code{"development"}
 #' @importFrom reproducible CacheDigest Cache
 #' @importFrom crayon yellow bgBlack
+#' @importFrom digest digest
 updateGit <- function(pkgs = NULL,
                       install = TRUE,
                       branch = "development") {
@@ -57,10 +60,12 @@ updateGit <- function(pkgs = NULL,
         if (isAPackage) {
           files <- dir(recursive = TRUE)
           d2 <- lapply(files, function(x) try(digest::digest(file = x, algo = "xxhash64")))
-          opts <- options("reproducible.useCache" = "devMode")
-          suppressPackageStartupMessages(require(reproducible))
-          dig <- reproducible::Cache(reproducible::CacheDigest, d2)
-          try(detach("package:reproducible", unload = TRUE, character.only = TRUE), silent = TRUE)
+          opts <- options("reproducible.useCache" = "devMode",
+                          "reproducible.cachePath" =
+                            reproducible::checkPath(file.path(system.file(package = "pedev"), ".Cache"), create = TRUE))
+          #suppressPackageStartupMessages(require(reproducible))
+          suppressMessages(dig <- reproducible::Cache(reproducible::CacheDigest, d2))
+          #try(detach("package:reproducible", unload = TRUE, character.only = TRUE), silent = TRUE)
           options(opts)
 
           if (attr(dig, ".Cache")$newCache) {

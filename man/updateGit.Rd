@@ -9,12 +9,14 @@ updateGit(pkgs = NULL, install = TRUE, branch = "development")
 \arguments{
 \item{pkgs}{A character vector of package names, which is actually
 the path names of the packages. i.e., must be absolute or relative
-path. Defaults to current directory. It}
+path. Defaults to current directory. It will also check in "..",
+i.e., one folder up from the current active folder if it doesn't find
+\code{pkgs} in the current folder.}
 
 \item{install}{Logical. If TRUE, then it will run devtools::install if
 there is new content}
 
-\item{branch}{The branch to pull from.}
+\item{branch}{The branch to pull from. Default is \code{"development"}}
 }
 \description{
 Fetches all branches, then pulls the identified branch from git,
