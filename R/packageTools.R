@@ -84,9 +84,10 @@ updateGit <- function(pkgs = NULL,
           opts <- options("reproducible.useCache" = "devMode",
                           "reproducible.cachePath" =
                             reproducible::checkPath(cacheRepo, create = TRUE))
+          browser()
           #suppressPackageStartupMessages(require(reproducible))
           suppressMessages(dig <- reproducible::Cache(reproducible::CacheDigest, d2,
-                           userTags = i ))
+                           userTags = i))
           #try(detach("package:reproducible", unload = TRUE, character.only = TRUE), silent = TRUE)
           options(opts)
 
@@ -124,9 +125,10 @@ updateGit <- function(pkgs = NULL,
 #' @param pkgs A character vector of the package(s) to run "devtools::load_all"
 #' @param load_all Logical. If \code{FALSE}, then this function will only
 #'   detach the packages necessary
-reload_all <- function(pkgs, load_all = TRUE) {
-  allPkgs <- c("LandR", "SpaDES.core", "SpaDES.tools", "map", "pemisc", "reproducible",
-               "quickPlot")
+reload_all <- function(pkgs, load_all = TRUE, gitPath = "~/GitHub") {
+  allPkgs <- c("LandR", "SpaDES.core", "SpaDES.tools", "map", "pemisc",
+               "pedev", "reproducible",
+               "quickPlot", "amc")
   if (length(pkgs) > 1) {
     # ordGeneral1 <- .pkgDepsGraph(pkgs = allPkgs)
     # ordGeneral2 <- igraph::topo_sort(ordGeneral1)
@@ -138,15 +140,22 @@ reload_all <- function(pkgs, load_all = TRUE) {
     }
   }
 
-  pkgsToUnload <- allPkgs[seq(max(which(allPkgs %in% pkgs)))]
+  wh <- which(allPkgs %in% pkgs)
+  pkgsToUnload <- if (length(wh) > 0)
+    allPkgs[seq(max(wh))]
+  else
+    character(0)
 
-  browser()
+  pkgsToUnload2 <- character()
   for (i in pkgsToUnload) {
     #for (i in pkgs) {
-    try(detach(paste0("package:", i), unload = TRUE, character.only = TRUE))
+    if (isNamespaceLoaded(i)) {
+      pkgsToUnload2 <- c(i, pkgsToUnload2)
+      try(detach(paste0("package:", i), unload = TRUE, character.only = TRUE))
+    }
   }
   if (isTRUE(load_all))
-    for (i in rev(pkgsToUnload)) {
+    for (i in pkgsToUnload2) {
       devtools::load_all(file.path(gitPath, i))
     }
 }
