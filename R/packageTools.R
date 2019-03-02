@@ -84,7 +84,6 @@ updateGit <- function(pkgs = NULL,
           opts <- options("reproducible.useCache" = "devMode",
                           "reproducible.cachePath" =
                             reproducible::checkPath(cacheRepo, create = TRUE))
-          browser()
           #suppressPackageStartupMessages(require(reproducible))
           suppressMessages(dig <- reproducible::Cache(reproducible::CacheDigest, d2,
                            userTags = i))
