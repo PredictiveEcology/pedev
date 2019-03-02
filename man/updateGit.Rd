@@ -4,7 +4,8 @@
 \alias{updateGit}
 \title{Pull from git and install}
 \usage{
-updateGit(pkgs = NULL, install = TRUE, branch = "development")
+updateGit(pkgs = NULL, install = TRUE, branch = "development",
+  cacheRepo = getOption("pedev.cacheRepo", "~/.pedevCache"))
 }
 \arguments{
 \item{pkgs}{A character vector of package names, which is actually
@@ -17,6 +18,10 @@ i.e., one folder up from the current active folder if it doesn't find
 there is new content}
 
 \item{branch}{The branch to pull from. Default is \code{"development"}}
+
+\item{cacheRepo}{The location where subsequent calls will store their history.
+To be most effective, this should be "persistent", and not part of any
+other cacheRepo.}
 }
 \description{
 Fetches all branches, then pulls the identified branch from git,

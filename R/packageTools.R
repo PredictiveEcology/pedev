@@ -12,6 +12,9 @@
 #' @export
 #' @param install Logical. If TRUE, then it will run devtools::install if
 #'   there is new content
+#' @param cacheRepo The location where subsequent calls will store their history.
+#'   To be most effective, this should be "persistent", and not part of any
+#'   other cacheRepo.
 #' @param branch The branch to pull from. Default is \code{"development"}
 #' @importFrom reproducible CacheDigest Cache
 #' @importFrom crayon yellow bgBlack
@@ -26,7 +29,8 @@
 #' }
 updateGit <- function(pkgs = NULL,
                       install = TRUE,
-                      branch = "development") {
+                      branch = "development",
+                      cacheRepo = getOption("pedev.cacheRepo", "~/.pedevCache")) {
   oldWd <- getwd()
   on.exit(setwd(oldWd))
   if (missing(pkgs))
@@ -70,7 +74,7 @@ updateGit <- function(pkgs = NULL,
           d2 <- lapply(files, function(x) try(digest::digest(file = x, algo = "xxhash64")))
           opts <- options("reproducible.useCache" = "devMode",
                           "reproducible.cachePath" =
-                            reproducible::checkPath(file.path(system.file(package = "pedev"), ".Cache"), create = TRUE))
+                            reproducible::checkPath(cacheRepo, create = TRUE))
           #suppressPackageStartupMessages(require(reproducible))
           suppressMessages(dig <- reproducible::Cache(reproducible::CacheDigest, d2))
           #try(detach("package:reproducible", unload = TRUE, character.only = TRUE), silent = TRUE)
