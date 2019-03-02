@@ -35,5 +35,9 @@ as a previous one, then the function will run \code{devtools::install}.
 allPkgs <- c("quickPlot", "reproducible", "SpaDES.core", "SpaDES.tools",
              "pemisc", "map", "LandR", "pedev")
 updateGit(allPkgs)
+
+# Will update and install all development branches of all repositories
+#   in ~/GitHub folder
+pedev::updateGit(dir("~/GitHub"))
 }
 }
