@@ -3,6 +3,11 @@
 #' Fetches all branches, then pulls the identified branch from git,
 #' then runs a digest on the local folders. If that digest is different
 #' as a previous one, then the function will run \code{devtools::install}.
+#' This should be safe even in cases where local files have changed. If
+#' they were uncommitted, Git will error, and nothing will be pulled,
+#' and if they were committed, then it will try a merge. If the automoated
+#' merge works, then it will proceed. If automated merge fails, then nothing
+#' will be pulled.
 #'
 #' @param pkgs A character vector of package names, which is actually
 #'   the path names of the packages. i.e., must be absolute or relative
