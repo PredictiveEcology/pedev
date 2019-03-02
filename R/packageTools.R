@@ -85,7 +85,8 @@ updateGit <- function(pkgs = NULL,
                           "reproducible.cachePath" =
                             reproducible::checkPath(cacheRepo, create = TRUE))
           #suppressPackageStartupMessages(require(reproducible))
-          suppressMessages(dig <- reproducible::Cache(reproducible::CacheDigest, d2))
+          suppressMessages(dig <- reproducible::Cache(reproducible::CacheDigest, d2,
+                           userTags = i ))
           #try(detach("package:reproducible", unload = TRUE, character.only = TRUE), silent = TRUE)
           options(opts)
 
