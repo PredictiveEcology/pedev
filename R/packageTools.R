@@ -94,9 +94,8 @@ updateGit <- function(pkgs = NULL,
         if (any(grepl("error", c(test1)))) {
           if (any(grepl("Aborting", test1))) {
             abortedCur <- list(test1)
-            names(abortedCur) <- i
+            names(abortedCur) <- paste(i, branch)
             aborted <- append(aborted, abortedCur)
-            break
           }
           next
         }
@@ -110,9 +109,8 @@ updateGit <- function(pkgs = NULL,
         if (any(grepl("error", c(test2)))) {
           if (any(grepl("Aborting", test2))) {
             abortedCur <- list(test2)
-            names(abortedCur) <- i
+            names(abortedCur) <- paste(i, branch)
             aborted <- append(aborted, abortedCur)
-            break
           }
           next
         }
