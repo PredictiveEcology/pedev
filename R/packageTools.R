@@ -26,6 +26,7 @@
 #'    Default is \code{c("development", "master")}, so it will pull from master,
 #'    then development. If one of them does not exist, it will try, deteremine
 #'    it doesn't exist, skip it and go to next branch.
+#' @param fetch Logical. Should it fetch before pulling.
 #' @param ... Passed to \code{devtools::install}
 #' @importFrom reproducible CacheDigest Cache
 #' @importFrom crayon yellow bgBlack
@@ -46,6 +47,7 @@ updateGit <- function(pkgs = NULL,
                       install = TRUE,
                       branch = c("development", "master"),
                       cacheRepo = getOption("pedev.cacheRepo", "~/.pedevCache"),
+                      fetch = TRUE,
                       ...) {
   oldWd <- getwd()
   on.exit(setwd(oldWd))
@@ -80,38 +82,29 @@ updateGit <- function(pkgs = NULL,
         setwd(insidePkg)
       }
 
-
-      cmd1 <- "git fetch"
-      message("  ", cmd1)
-      system(cmd1, intern = TRUE)
+      if (isTRUE(fetch)) {
+        cmd1 <- "git fetch"
+        message("  ", cmd1)
+        system(cmd1, intern = TRUE)
+      }
       anyBranchExists <- FALSE
       for (branch in rev(branches)) {
         cmd1 <- paste("checkout", branch)
         message("  ", cmd1)
-        #test1 <- suppressWarnings(system(cmd1, intern = TRUE))
         test1 <- suppressWarnings(system2("git", args = cmd1, stdout = TRUE, stderr = TRUE))
         message("    ", paste(test1, collapse = "\n"))
         if (any(grepl("error", c(test1)))) {
-          if (any(grepl("Aborting", test1))) {
-            abortedCur <- list(test1)
-            names(abortedCur) <- paste(i, branch)
-            aborted <- append(aborted, abortedCur)
-          }
+          aborted <- errorHadAbort(test1, i, branch, aborted)
           next
         }
 
         cmd1 <- "pull"
         message("  ", cmd1)
         test2 <- suppressWarnings(system2("git", args = cmd1, stdout = TRUE, stderr = TRUE))
-        #test2 <- suppressWarnings(system(cmd1, intern = TRUE))
         message("    ", paste(test2, collapse = "\n"))
         anyBranchExists <- TRUE
         if (any(grepl("error", c(test2)))) {
-          if (any(grepl("Aborting", test2))) {
-            abortedCur <- list(test2)
-            names(abortedCur) <- paste(i, branch)
-            aborted <- append(aborted, abortedCur)
-          }
+          aborted <- errorHadAbort(test2, i, branch, aborted)
           next
         }
       }
@@ -202,4 +195,12 @@ reload_all <- function(pkgs, load_all = TRUE, gitPath = "~/GitHub") {
     for (i in pkgsToUnload2) {
       devtools::load_all(file.path(gitPath, i))
     }
+}
+
+errorHadAbort <- function(errorMsg, pkg, branch, aborted) {
+  if (any(grepl("Aborting", errorMsg))) {
+    abortedCur <- list(errorMsg)
+    names(abortedCur) <- paste0(pkg, "@", branch)
+    aborted <- append(aborted, abortedCur)
+  }
 }

@@ -6,7 +6,7 @@
 \usage{
 updateGit(pkgs = NULL, install = TRUE, branch = c("development",
   "master"), cacheRepo = getOption("pedev.cacheRepo", "~/.pedevCache"),
-  ...)
+  fetch = TRUE, ...)
 }
 \arguments{
 \item{pkgs}{A character vector of package names, which is actually
@@ -22,6 +22,8 @@ i.e., first branch, will be installed.}
 \item{cacheRepo}{The location where subsequent calls will store their history.
 To be most effective, this should be "persistent", and not part of any
 other cacheRepo.}
+
+\item{fetch}{Logical. Should it fetch before pulling.}
 
 \item{...}{Passed to \code{devtools::install}}
 
