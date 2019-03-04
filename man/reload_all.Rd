@@ -4,7 +4,7 @@
 \alias{reload_all}
 \title{A verion of devtools::load_all that detaches dependencies}
 \usage{
-reload_all(pkgs, load_all = TRUE)
+reload_all(pkgs, load_all = TRUE, gitPath = "~/GitHub")
 }
 \arguments{
 \item{pkgs}{A character vector of the package(s) to run "devtools::load_all"}

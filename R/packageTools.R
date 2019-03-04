@@ -15,12 +15,19 @@
 #'   i.e., one folder up from the current active folder if it doesn't find
 #'   \code{pkgs} in the current folder.
 #' @export
-#' @param install Logical. If TRUE, then it will run devtools::install if
-#'   there is new content
+#' @param install Logical. If TRUE, then it will run \code{devtools::install} if
+#'   there is new content. If \code{branch} was length > 1, only the active,
+#'   i.e., first branch, will be installed.
 #' @param cacheRepo The location where subsequent calls will store their history.
 #'   To be most effective, this should be "persistent", and not part of any
 #'   other cacheRepo.
-#' @param branch The branch to pull from. Default is \code{"development"}
+#' @param branches A vector of branch names to pull from, \emph{in reverse order}
+#'    so that the first one is the active branch after this function call finishes.
+#'    Default is \code{c("development", "master")}, so it will pull from master,
+#'    then development. If one of them does not exist, it will try, deteremine
+#'    it doesn't exist, skip it and go to next branch.
+#' @param fetch Logical. Should it fetch before pulling.
+#' @param ... Passed to \code{devtools::install}
 #' @importFrom reproducible CacheDigest Cache
 #' @importFrom crayon yellow bgBlack
 #' @importFrom digest digest
@@ -38,17 +45,33 @@
 #' }
 updateGit <- function(pkgs = NULL,
                       install = TRUE,
-                      branch = "development",
-                      cacheRepo = getOption("pedev.cacheRepo", "~/.pedevCache")) {
+                      branch = c("development", "master"),
+                      cacheRepo = getOption("pedev.cacheRepo", "~/.pedevCache"),
+                      fetch = TRUE,
+                      ...) {
   oldWd <- getwd()
   on.exit(setwd(oldWd))
   if (missing(pkgs))
     pkgs <- basename(getwd())
 
+  branches <- branch
+  aborted <- list()
+  on.exit({
+    if (length(aborted)) {
+      message(crayon::magenta(
+        "                                                        \n",
+        "########### Summary of aborted cases  #######################\n",
+        "  -", paste(lapply(names(aborted),
+                             function(nam)
+                               paste(c(nam, aborted[[nam]]), collapse = "\n       ")),
+                      collapse = "\n   - ")))
+    }
+  }, add = FALSE)
+
   for (i in pkgs) {
     pkgDir <- paste0(i)
-    insidePkg <- file.path("..", pkgDir)
-    dirExistsA <- dir.exists(pkgDir)
+    insidePkg <- file.path(oldWd, "..", pkgDir)
+    dirExistsA <- dir.exists(file.path(oldWd, pkgDir))
     dirExistsB <- dir.exists(insidePkg)
     if (dirExistsA || dirExistsB) {
       message("#########################################################")
@@ -59,21 +82,36 @@ updateGit <- function(pkgs = NULL,
         setwd(insidePkg)
       }
 
-      cmd1 <- "git fetch"
-      message("  ", cmd1)
-      system(cmd1, intern = TRUE)
+      if (isTRUE(fetch)) {
+        cmd1 <- "git fetch"
+        message("  ", cmd1)
+        system(cmd1, intern = TRUE)
+      }
+      anyBranchExists <- FALSE
+      for (branch in rev(branches)) {
+        cmd1 <- paste("checkout", branch)
+        message("  ", cmd1)
+        test1 <- suppressWarnings(system2("git", args = cmd1, stdout = TRUE, stderr = TRUE))
+        message("    ", paste(test1, collapse = "\n"))
+        if (any(grepl("error", c(test1)))) {
+          aborted <- errorHadAbort(test1, i, branch, aborted)
+          next
+        }
 
-      cmd1 <- paste("git checkout", branch)
-      message("  ", cmd1)
-      test1 <- system(cmd1, intern = TRUE)
-      message("    ", paste(test1, collapse = "\n"))
+        cmd1 <- "pull"
+        message("  ", cmd1)
+        test2 <- suppressWarnings(system2("git", args = cmd1, stdout = TRUE, stderr = TRUE))
+        message("    ", paste(test2, collapse = "\n"))
+        anyBranchExists <- TRUE
+        if (any(grepl("error", c(test2)))) {
+          aborted <- errorHadAbort(test2, i, branch, aborted)
+          next
+        }
+      }
 
-      cmd1 <- "git pull"
-      message("  ", cmd1)
-      test2 <- system(cmd1, intern = TRUE)
-      message("    ", paste(test2, collapse = "\n"))
-      if (any(grepl("error", c(test1, test2)))) next
-
+      if (!anyBranchExists) {
+        next
+      }
       isAPackage <- length(dir(pattern = "DESCRIPTION")) > 0
 
       if (!isAPackage) message("Not a package; no install")
@@ -92,7 +130,7 @@ updateGit <- function(pkgs = NULL,
 
           if (attr(dig, ".Cache")$newCache) {
             message("  installing ... ")
-            devtools::install(dependencies = FALSE, reload = FALSE)
+            devtools::install(dependencies = FALSE, reload = FALSE, ...)
           } else {
             message("  not reinstalling; already installed this version")
           }
@@ -157,4 +195,12 @@ reload_all <- function(pkgs, load_all = TRUE, gitPath = "~/GitHub") {
     for (i in pkgsToUnload2) {
       devtools::load_all(file.path(gitPath, i))
     }
+}
+
+errorHadAbort <- function(errorMsg, pkg, branch, aborted) {
+  if (any(grepl("Aborting", errorMsg))) {
+    abortedCur <- list(errorMsg)
+    names(abortedCur) <- paste0(pkg, "@", branch)
+    aborted <- append(aborted, abortedCur)
+  }
 }

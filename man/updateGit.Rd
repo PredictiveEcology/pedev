@@ -4,8 +4,9 @@
 \alias{updateGit}
 \title{Pull from git and install}
 \usage{
-updateGit(pkgs = NULL, install = TRUE, branch = "development",
-  cacheRepo = getOption("pedev.cacheRepo", "~/.pedevCache"))
+updateGit(pkgs = NULL, install = TRUE, branch = c("development",
+  "master"), cacheRepo = getOption("pedev.cacheRepo", "~/.pedevCache"),
+  fetch = TRUE, ...)
 }
 \arguments{
 \item{pkgs}{A character vector of package names, which is actually
@@ -14,14 +15,23 @@ path. Defaults to current directory. It will also check in "..",
 i.e., one folder up from the current active folder if it doesn't find
 \code{pkgs} in the current folder.}
 
-\item{install}{Logical. If TRUE, then it will run devtools::install if
-there is new content}
-
-\item{branch}{The branch to pull from. Default is \code{"development"}}
+\item{install}{Logical. If TRUE, then it will run \code{devtools::install} if
+there is new content. If \code{branch} was length > 1, only the active,
+i.e., first branch, will be installed.}
 
 \item{cacheRepo}{The location where subsequent calls will store their history.
 To be most effective, this should be "persistent", and not part of any
 other cacheRepo.}
+
+\item{fetch}{Logical. Should it fetch before pulling.}
+
+\item{...}{Passed to \code{devtools::install}}
+
+\item{branches}{A vector of branch names to pull from, \emph{in reverse order}
+so that the first one is the active branch after this function call finishes.
+Default is \code{c("development", "master")}, so it will pull from master,
+then development. If one of them does not exist, it will try, deteremine
+it doesn't exist, skip it and go to next branch.}
 }
 \description{
 Fetches all branches, then pulls the identified branch from git,
