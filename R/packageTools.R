@@ -86,9 +86,10 @@ updateGit <- function(pkgs = NULL,
       system(cmd1, intern = TRUE)
       anyBranchExists <- FALSE
       for (branch in rev(branches)) {
-        cmd1 <- paste("git checkout", branch)
+        cmd1 <- paste("checkout", branch)
         message("  ", cmd1)
-        test1 <- suppressWarnings(system(cmd1, intern = TRUE))
+        #test1 <- suppressWarnings(system(cmd1, intern = TRUE))
+        test1 <- suppressWarnings(system2("git", args = cmd1, stdout = TRUE, stderr = TRUE))
         message("    ", paste(test1, collapse = "\n"))
         if (any(grepl("error", c(test1)))) {
           if (any(grepl("Aborting", test1))) {
@@ -100,9 +101,10 @@ updateGit <- function(pkgs = NULL,
           next
         }
 
-        cmd1 <- "git pull"
+        cmd1 <- "pull"
         message("  ", cmd1)
-        test2 <- suppressWarnings(system(cmd1, intern = TRUE))
+        test2 <- suppressWarnings(system2("git", args = cmd1, stdout = TRUE, stderr = TRUE))
+        #test2 <- suppressWarnings(system(cmd1, intern = TRUE))
         message("    ", paste(test2, collapse = "\n"))
         anyBranchExists <- TRUE
         if (any(grepl("error", c(test2)))) {
