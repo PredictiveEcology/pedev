@@ -53,6 +53,7 @@ updateGit <- function(pkgs = NULL,
     pkgs <- basename(getwd())
 
   branches <- branch
+  aborted <- character()
   for (i in pkgs) {
     pkgDir <- paste0(i)
     insidePkg <- file.path("..", pkgDir)
@@ -76,6 +77,10 @@ updateGit <- function(pkgs = NULL,
         test1 <- suppressWarnings(system(cmd1, intern = TRUE))
         message("    ", paste(test1, collapse = "\n"))
         if (any(grepl("error", c(test1)))) {
+          if (any(grepl("Aborting", test1))) {
+            aborted <- c(aborted, i)
+            break
+          }
           next
         }
 
@@ -116,6 +121,10 @@ updateGit <- function(pkgs = NULL,
       message("Package ", i, " does not exist locally; skipping")
     }
   }
+  if (length(aborted))
+    warning("The following packages did not successfully pull because ",
+            "of local, uncommitted changes:\n  ",
+            paste(unique(aborted), collapse = "\n  "))
 }
 
 .pkgDepsGraph <- function(pkgs) {
