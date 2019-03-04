@@ -15,7 +15,7 @@
 #'   i.e., one folder up from the current active folder if it doesn't find
 #'   \code{pkgs} in the current folder.
 #' @export
-#' @param install Logical. If TRUE, then it will run devtools::install if
+#' @param install Logical. If TRUE, then it will run \code{devtools::install} if
 #'   there is new content. If \code{branch} was length > 1, only the active,
 #'   i.e., first branch, will be installed.
 #' @param cacheRepo The location where subsequent calls will store their history.
@@ -25,6 +25,7 @@
 #'    so that the first one is the active branch after this function call finishes.
 #'    Default is \code{c("development", "master")}, so it will pull from master,
 #'    then development.
+#' @param ... Passed to \code{devtools::install}
 #' @importFrom reproducible CacheDigest Cache
 #' @importFrom crayon yellow bgBlack
 #' @importFrom digest digest
@@ -43,7 +44,8 @@
 updateGit <- function(pkgs = NULL,
                       install = TRUE,
                       branch = c("development", "master"),
-                      cacheRepo = getOption("pedev.cacheRepo", "~/.pedevCache")) {
+                      cacheRepo = getOption("pedev.cacheRepo", "~/.pedevCache"),
+                      ...) {
   oldWd <- getwd()
   on.exit(setwd(oldWd))
   if (missing(pkgs))
@@ -103,7 +105,7 @@ updateGit <- function(pkgs = NULL,
 
           if (attr(dig, ".Cache")$newCache) {
             message("  installing ... ")
-            devtools::install(dependencies = FALSE, reload = FALSE)
+            devtools::install(dependencies = FALSE, reload = FALSE, ...)
           } else {
             message("  not reinstalling; already installed this version")
           }
