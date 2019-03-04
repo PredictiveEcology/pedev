@@ -3,6 +3,11 @@
 #' Fetches all branches, then pulls the identified branch from git,
 #' then runs a digest on the local folders. If that digest is different
 #' as a previous one, then the function will run \code{devtools::install}.
+#' This should be safe even in cases where local files have changed. If
+#' they were uncommitted, Git will error, and nothing will be pulled,
+#' and if they were committed, then it will try a merge. If the automoated
+#' merge works, then it will proceed. If automated merge fails, then nothing
+#' will be pulled.
 #'
 #' @param pkgs A character vector of package names, which is actually
 #'   the path names of the packages. i.e., must be absolute or relative
@@ -12,13 +17,29 @@
 #' @export
 #' @param install Logical. If TRUE, then it will run devtools::install if
 #'   there is new content
+#' @param cacheRepo The location where subsequent calls will store their history.
+#'   To be most effective, this should be "persistent", and not part of any
+#'   other cacheRepo.
 #' @param branch The branch to pull from. Default is \code{"development"}
 #' @importFrom reproducible CacheDigest Cache
 #' @importFrom crayon yellow bgBlack
 #' @importFrom digest digest
+#' @examples
+#' \dontrun{
+#' # This will pull development branch of all these packages, and install them
+#' #    all, if there are any file changes in each respective directory
+#' allPkgs <- c("quickPlot", "reproducible", "SpaDES.core", "SpaDES.tools",
+#'              "pemisc", "map", "LandR", "pedev")
+#' updateGit(allPkgs)
+#'
+#' # Will update and install all development branches of all repositories
+#' #   in ~/GitHub folder
+#' pedev::updateGit(dir("~/GitHub"))
+#' }
 updateGit <- function(pkgs = NULL,
                       install = TRUE,
-                      branch = "development") {
+                      branch = "development",
+                      cacheRepo = getOption("pedev.cacheRepo", "~/.pedevCache")) {
   oldWd <- getwd()
   on.exit(setwd(oldWd))
   if (missing(pkgs))
@@ -62,9 +83,10 @@ updateGit <- function(pkgs = NULL,
           d2 <- lapply(files, function(x) try(digest::digest(file = x, algo = "xxhash64")))
           opts <- options("reproducible.useCache" = "devMode",
                           "reproducible.cachePath" =
-                            reproducible::checkPath(file.path(system.file(package = "pedev"), ".Cache"), create = TRUE))
+                            reproducible::checkPath(cacheRepo, create = TRUE))
           #suppressPackageStartupMessages(require(reproducible))
-          suppressMessages(dig <- reproducible::Cache(reproducible::CacheDigest, d2))
+          suppressMessages(dig <- reproducible::Cache(reproducible::CacheDigest, d2,
+                           userTags = i))
           #try(detach("package:reproducible", unload = TRUE, character.only = TRUE), silent = TRUE)
           options(opts)
 
@@ -102,9 +124,10 @@ updateGit <- function(pkgs = NULL,
 #' @param pkgs A character vector of the package(s) to run "devtools::load_all"
 #' @param load_all Logical. If \code{FALSE}, then this function will only
 #'   detach the packages necessary
-reload_all <- function(pkgs, load_all = TRUE) {
-  allPkgs <- c("LandR", "SpaDES.core", "SpaDES.tools", "map", "pemisc", "reproducible",
-               "quickPlot")
+reload_all <- function(pkgs, load_all = TRUE, gitPath = "~/GitHub") {
+  allPkgs <- c("LandR", "SpaDES.core", "SpaDES.tools", "map", "pemisc",
+               "pedev", "reproducible",
+               "quickPlot", "amc")
   if (length(pkgs) > 1) {
     # ordGeneral1 <- .pkgDepsGraph(pkgs = allPkgs)
     # ordGeneral2 <- igraph::topo_sort(ordGeneral1)
@@ -116,15 +139,22 @@ reload_all <- function(pkgs, load_all = TRUE) {
     }
   }
 
-  pkgsToUnload <- allPkgs[seq(max(which(allPkgs %in% pkgs)))]
+  wh <- which(allPkgs %in% pkgs)
+  pkgsToUnload <- if (length(wh) > 0)
+    allPkgs[seq(max(wh))]
+  else
+    character(0)
 
-  browser()
+  pkgsToUnload2 <- character()
   for (i in pkgsToUnload) {
     #for (i in pkgs) {
-    try(detach(paste0("package:", i), unload = TRUE, character.only = TRUE))
+    if (isNamespaceLoaded(i)) {
+      pkgsToUnload2 <- c(i, pkgsToUnload2)
+      try(detach(paste0("package:", i), unload = TRUE, character.only = TRUE))
+    }
   }
   if (isTRUE(load_all))
-    for (i in rev(pkgsToUnload)) {
+    for (i in pkgsToUnload2) {
       devtools::load_all(file.path(gitPath, i))
     }
 }

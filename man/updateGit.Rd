@@ -4,7 +4,8 @@
 \alias{updateGit}
 \title{Pull from git and install}
 \usage{
-updateGit(pkgs = NULL, install = TRUE, branch = "development")
+updateGit(pkgs = NULL, install = TRUE, branch = "development",
+  cacheRepo = getOption("pedev.cacheRepo", "~/.pedevCache"))
 }
 \arguments{
 \item{pkgs}{A character vector of package names, which is actually
@@ -17,9 +18,31 @@ i.e., one folder up from the current active folder if it doesn't find
 there is new content}
 
 \item{branch}{The branch to pull from. Default is \code{"development"}}
+
+\item{cacheRepo}{The location where subsequent calls will store their history.
+To be most effective, this should be "persistent", and not part of any
+other cacheRepo.}
 }
 \description{
 Fetches all branches, then pulls the identified branch from git,
 then runs a digest on the local folders. If that digest is different
 as a previous one, then the function will run \code{devtools::install}.
+This should be safe even in cases where local files have changed. If
+they were uncommitted, Git will error, and nothing will be pulled,
+and if they were committed, then it will try a merge. If the automoated
+merge works, then it will proceed. If automated merge fails, then nothing
+will be pulled.
+}
+\examples{
+\dontrun{
+# This will pull development branch of all these packages, and install them
+#    all, if there are any file changes in each respective directory
+allPkgs <- c("quickPlot", "reproducible", "SpaDES.core", "SpaDES.tools",
+             "pemisc", "map", "LandR", "pedev")
+updateGit(allPkgs)
+
+# Will update and install all development branches of all repositories
+#   in ~/GitHub folder
+pedev::updateGit(dir("~/GitHub"))
+}
 }
