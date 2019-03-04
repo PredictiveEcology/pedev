@@ -16,11 +16,15 @@
 #'   \code{pkgs} in the current folder.
 #' @export
 #' @param install Logical. If TRUE, then it will run devtools::install if
-#'   there is new content
+#'   there is new content. If \code{branch} was length > 1, only the active,
+#'   i.e., first branch, will be installed.
 #' @param cacheRepo The location where subsequent calls will store their history.
 #'   To be most effective, this should be "persistent", and not part of any
 #'   other cacheRepo.
-#' @param branch The branch to pull from. Default is \code{"development"}
+#' @param branches A vector of branch names to pull from, \emph{in reverse order}
+#'    so that the first one is the active branch after this function call finishes.
+#'    Default is \code{c("development", "master")}, so it will pull from master,
+#'    then development.
 #' @importFrom reproducible CacheDigest Cache
 #' @importFrom crayon yellow bgBlack
 #' @importFrom digest digest
@@ -38,13 +42,14 @@
 #' }
 updateGit <- function(pkgs = NULL,
                       install = TRUE,
-                      branch = "development",
+                      branch = c("development", "master"),
                       cacheRepo = getOption("pedev.cacheRepo", "~/.pedevCache")) {
   oldWd <- getwd()
   on.exit(setwd(oldWd))
   if (missing(pkgs))
     pkgs <- basename(getwd())
 
+  branches <- branch
   for (i in pkgs) {
     pkgDir <- paste0(i)
     insidePkg <- file.path("..", pkgDir)
@@ -62,18 +67,24 @@ updateGit <- function(pkgs = NULL,
       cmd1 <- "git fetch"
       message("  ", cmd1)
       system(cmd1, intern = TRUE)
+      for (branch in rev(branches)) {
+        cmd1 <- paste("git checkout", branch)
+        message("  ", cmd1)
+        test1 <- suppressWarnings(system(cmd1, intern = TRUE))
+        message("    ", paste(test1, collapse = "\n"))
+        if (any(grepl("error", c(test1)))) {
+          next
+        }
 
-      cmd1 <- paste("git checkout", branch)
-      message("  ", cmd1)
-      test1 <- system(cmd1, intern = TRUE)
-      message("    ", paste(test1, collapse = "\n"))
+        cmd1 <- "git pull"
+        message("  ", cmd1)
+        test2 <- system(cmd1, intern = TRUE)
+        message("    ", paste(test2, collapse = "\n"))
+      }
 
-      cmd1 <- "git pull"
-      message("  ", cmd1)
-      test2 <- system(cmd1, intern = TRUE)
-      message("    ", paste(test2, collapse = "\n"))
-      if (any(grepl("error", c(test1, test2)))) next
-
+      if (any(grepl("error", test1))) {
+        next
+      }
       isAPackage <- length(dir(pattern = "DESCRIPTION")) > 0
 
       if (!isAPackage) message("Not a package; no install")
