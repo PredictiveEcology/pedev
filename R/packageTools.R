@@ -81,7 +81,7 @@ updateGit <- function(pkgs = NULL,
 
         cmd1 <- "git pull"
         message("  ", cmd1)
-        test2 <- system(cmd1, intern = TRUE)
+        test2 <- suppressWarnings(system(cmd1, intern = TRUE))
         message("    ", paste(test2, collapse = "\n"))
       }
 
