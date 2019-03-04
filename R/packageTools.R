@@ -71,6 +71,7 @@ updateGit <- function(pkgs = NULL,
       cmd1 <- "git fetch"
       message("  ", cmd1)
       system(cmd1, intern = TRUE)
+      anyBranchExists <- FALSE
       for (branch in rev(branches)) {
         cmd1 <- paste("git checkout", branch)
         message("  ", cmd1)
@@ -88,9 +89,10 @@ updateGit <- function(pkgs = NULL,
         message("  ", cmd1)
         test2 <- suppressWarnings(system(cmd1, intern = TRUE))
         message("    ", paste(test2, collapse = "\n"))
+        anyBranchExists <- TRUE
       }
 
-      if (any(grepl("error", test1))) {
+      if (!anyBranchExists) {
         next
       }
       isAPackage <- length(dir(pattern = "DESCRIPTION")) > 0
