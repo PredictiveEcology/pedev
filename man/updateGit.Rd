@@ -28,7 +28,8 @@ other cacheRepo.}
 \item{branches}{A vector of branch names to pull from, \emph{in reverse order}
 so that the first one is the active branch after this function call finishes.
 Default is \code{c("development", "master")}, so it will pull from master,
-then development.}
+then development. If one of them does not exist, it will try, deteremine
+it doesn't exist, skip it and go to next branch.}
 }
 \description{
 Fetches all branches, then pulls the identified branch from git,
