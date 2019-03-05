@@ -125,7 +125,7 @@ updateGit <- function(pkgs = NULL,
           next
         }
 
-        if (lenUnfinished < length(unfinished)) {
+        #if (lenUnfinished < length(unfinished)) {
           if (isTRUE(submodule)) {
             if (file.exists(".gitmodules")) {
               message("running submodule updates -- VERY EXPERIMENTAL")
@@ -143,7 +143,7 @@ updateGit <- function(pkgs = NULL,
               }
             }
           }
-        }
+        #}
 
         unfinished <- unfinished(test2, i, branch, unfinished,
                                  expectedMsg = paste0("(up.to.date)"))
