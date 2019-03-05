@@ -27,6 +27,8 @@
 #'    then development. If one of them does not exist, it will try, deteremine
 #'    it doesn't exist, skip it and go to next branch.
 #' @param fetch Logical. Should it fetch before pulling.
+#' @param submodules Logical. VERY EXPERIMENTAL. \code{TRUE} would mean pull all
+#'   submodules... the problem is that branch gets complicated.
 #' @param ... Passed to \code{devtools::install}
 #' @importFrom reproducible CacheDigest Cache
 #' @importFrom crayon yellow bgBlack
@@ -47,7 +49,7 @@ updateGit <- function(pkgs = NULL,
                       install = TRUE,
                       branch = c("development", "master"),
                       cacheRepo = getOption("pedev.cacheRepo", "~/.pedevCache"),
-                      fetch = TRUE,
+                      fetch = TRUE, submodule = FALSE,
                       ...) {
   oldWd <- getwd()
   on.exit(setwd(oldWd))
@@ -56,6 +58,7 @@ updateGit <- function(pkgs = NULL,
 
   branches <- branch
   aborted <- list()
+  unfinished <- list()
   on.exit({
     if (length(aborted)) {
       message(crayon::magenta(
@@ -66,6 +69,16 @@ updateGit <- function(pkgs = NULL,
                                paste(c(nam, aborted[[nam]]), collapse = "\n       ")),
                       collapse = "\n   - ")))
     }
+    if (length(unfinished)) {
+      message(crayon::blue(
+        "                                                        \n",
+        "########### Summary of unfinished cases  #######################\n",
+        "  -", paste(lapply(names(unfinished),
+                            function(nam)
+                              paste(c(nam, unfinished[[nam]]), collapse = "\n       ")),
+                     collapse = "\n   - ")))
+    }
+
   }, add = FALSE)
 
   for (i in pkgs) {
@@ -98,6 +111,10 @@ updateGit <- function(pkgs = NULL,
           next
         }
 
+        lenUnfinished <- length(unfinished)
+        unfinished <- unfinished(test1, i, branch, unfinished,
+                                 expectedMsg = paste0("(up to date)|(",branch,")"))
+
         cmd1 <- "pull"
         message("  ", cmd1)
         test2 <- suppressWarnings(system2("git", args = cmd1, stdout = TRUE, stderr = TRUE))
@@ -107,6 +124,30 @@ updateGit <- function(pkgs = NULL,
           aborted <- errorHadAbort(test2, i, branch, aborted)
           next
         }
+
+        if (lenUnfinished < length(unfinished)) {
+          if (isTRUE(submodule)) {
+            if (file.exists(".gitmodules")) {
+              message("running submodule updates -- VERY EXPERIMENTAL")
+              if (FALSE) {
+              test1a <- system2("git", args = "submodule foreach git fetch",
+                                stdout = TRUE, stderr = TRUE)
+              test1b <- system2("git", args = "submodule foreach git checkout development",
+                                stdout = TRUE, stderr = TRUE)
+              #git submodule foreach git checkout development
+              test1c <- system2("git", args = "submodule foreach git pull",
+                                stdout = TRUE, stderr = TRUE)
+              } else {
+                test1d <- system2("git", "submodule update --remote",
+                        stdout = TRUE, stderr = TRUE)
+              }
+            }
+          }
+        }
+
+        unfinished <- unfinished(test2, i, branch, unfinished,
+                                 expectedMsg = paste0("(up to date)"))
+
       }
 
       if (!anyBranchExists) {
@@ -198,9 +239,19 @@ reload_all <- function(pkgs, load_all = TRUE, gitPath = "~/GitHub") {
 }
 
 errorHadAbort <- function(errorMsg, pkg, branch, aborted) {
-  if (any(grepl("Aborting", errorMsg))) {
-    abortedCur <- list(errorMsg)
-    names(abortedCur) <- paste0(pkg, "@", branch)
-    aborted <- append(aborted, abortedCur)
+    if (any(grepl("Aborting", errorMsg))) {
+      abortedCur <- list(errorMsg)
+      names(abortedCur) <- paste0(pkg, "@", branch)
+      aborted <- append(aborted, abortedCur)
+    }
+  aborted
+}
+
+unfinished <- function(msg, pkg, branch, unfinished, expectedMsg) {
+  if (!all(grepl(expectedMsg, msg))) {
+    unfinishedCur <- list(msg)
+    names(unfinishedCur) <- paste0(pkg, "@", branch)
+    unfinished <- append(unfinished, unfinishedCur)
   }
+  unfinished
 }

@@ -6,7 +6,7 @@
 \usage{
 updateGit(pkgs = NULL, install = TRUE, branch = c("development",
   "master"), cacheRepo = getOption("pedev.cacheRepo", "~/.pedevCache"),
-  fetch = TRUE, ...)
+  fetch = TRUE, submodule = FALSE, ...)
 }
 \arguments{
 \item{pkgs}{A character vector of package names, which is actually
@@ -32,6 +32,9 @@ so that the first one is the active branch after this function call finishes.
 Default is \code{c("development", "master")}, so it will pull from master,
 then development. If one of them does not exist, it will try, deteremine
 it doesn't exist, skip it and go to next branch.}
+
+\item{submodules}{Logical. VERY EXPERIMENTAL. \code{TRUE} would mean pull all
+submodules... the problem is that branch gets complicated.}
 }
 \description{
 Fetches all branches, then pulls the identified branch from git,
