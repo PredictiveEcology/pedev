@@ -146,7 +146,7 @@ updateGit <- function(pkgs = NULL,
         #}
 
         unfinished <- unfinished(test2, i, branch, unfinished,
-                                 expectedMsg = paste0("(up.to.date)|(can be fast)"))
+                                 expectedMsg = paste0("(up.to.date)|(can be fast)|(Already on)"))
 
       }
 
