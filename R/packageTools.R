@@ -113,7 +113,7 @@ updateGit <- function(pkgs = NULL,
 
         lenUnfinished <- length(unfinished)
         unfinished <- unfinished(test1, i, branch, unfinished,
-                                 expectedMsg = paste0("(up to date)|(",branch,")"))
+                                 expectedMsg = paste0("(up.to.date)|(",branch,")"))
 
         cmd1 <- "pull"
         message("  ", cmd1)
@@ -146,7 +146,7 @@ updateGit <- function(pkgs = NULL,
         }
 
         unfinished <- unfinished(test2, i, branch, unfinished,
-                                 expectedMsg = paste0("(up to date)"))
+                                 expectedMsg = paste0("(up.to.date)"))
 
       }
 
