@@ -91,91 +91,98 @@ updateGit <- function(pkgs = NULL,
       message(crayon::bgBlack(crayon::yellow("updating ", i)))
       if (dirExistsA) {
         setwd(pkgDir)
+        isGitRepo <- file.exists(file.path(pkgDir, ".git"))
       } else {
         setwd(insidePkg)
+        isGitRepo <- file.exists(file.path(insidePkg, ".git"))
       }
 
-      if (isTRUE(fetch)) {
-        cmd1 <- "git fetch"
-        message("  ", cmd1)
-        system(cmd1, intern = TRUE)
-      }
-      anyBranchExists <- FALSE
-      for (branch in rev(branches)) {
-        cmd1 <- paste("checkout", branch)
-        message("  ", cmd1)
-        test1 <- suppressWarnings(system2("git", args = cmd1, stdout = TRUE, stderr = TRUE))
-        message("    ", paste(test1, collapse = "\n"))
-        if (any(grepl("error", c(test1)))) {
-          aborted <- errorHadAbort(test1, i, branch, aborted)
-          next
+      if (isTRUE(isGitRepo)) {
+        if (isTRUE(fetch)) {
+          cmd1 <- "git fetch"
+          message("  ", cmd1)
+          system(cmd1, intern = TRUE)
         }
+        anyBranchExists <- FALSE
+        for (branch in rev(branches)) {
+          cmd1 <- paste("checkout", branch)
+          message("  ", cmd1)
+          test1 <- suppressWarnings(system2("git", args = cmd1, stdout = TRUE, stderr = TRUE))
+          message("    ", paste(test1, collapse = "\n"))
+          if (any(grepl("error", c(test1)))) {
+            aborted <- errorHadAbort(test1, i, branch, aborted)
+            next
+          }
 
-        lenUnfinished <- length(unfinished)
-        unfinished <- unfinished(test1, i, branch, unfinished,
-                                 expectedMsg = paste0("(up.to.date)|(",branch,")"))
+          lenUnfinished <- length(unfinished)
+          unfinished <- unfinished(test1, i, branch, unfinished,
+                                   expectedMsg = paste0("(up.to.date)|(",branch,")"))
 
-        cmd1 <- "pull"
-        message("  ", cmd1)
-        test2 <- suppressWarnings(system2("git", args = cmd1, stdout = TRUE, stderr = TRUE))
-        message("    ", paste(test2, collapse = "\n"))
-        anyBranchExists <- TRUE
-        if (any(grepl("error", c(test2)))) {
-          aborted <- errorHadAbort(test2, i, branch, aborted)
-          next
-        }
+          cmd1 <- "pull"
+          message("  ", cmd1)
+          test2 <- suppressWarnings(system2("git", args = cmd1, stdout = TRUE, stderr = TRUE))
+          message("    ", paste(test2, collapse = "\n"))
+          anyBranchExists <- TRUE
+          if (any(grepl("error", c(test2)))) {
+            aborted <- errorHadAbort(test2, i, branch, aborted)
+            next
+          }
 
-        if (isTRUE(submodule)) {
-          if (file.exists(".gitmodules")) {
-            message("running submodule updates -- VERY EXPERIMENTAL")
-            message("- checking out & pulling the branches indicated in .gitmodules")
-            gitCheckoutEachBranchCmd <- paste("submodule foreach -q --recursive 'branch=\"$(git config -f",
-                                              "$toplevel/.gitmodules submodule.$name.branch)\";",
-                                              "echo $name && git checkout $branch && git pull'")
-            if (.Platform$OS.type != "windows") {
-              test1e <- system2("git", gitCheckoutEachBranchCmd, stdout = TRUE, stderr = TRUE)
-              message("   ", lapply(test1e, paste, "\n   "))
-            } else {
-              # Have to make a temporary .bat and .sh file so command can work
-              tmpSh <- basename(tempfile(fileext = ".sh"))
-              tmpBat <- basename(tempfile(fileext = ".bat"))
-              on.exit({unlink(tmpSh); unlink(tmpBat)}, add = TRUE)
-              cat(file = tmpSh, fill = FALSE,
-                  paste("#!/bin/bash",
-                        paste("git", gitCheckoutEachBranchCmd), sep = "\n"))
-              gitBashExePath <- list()
-              gitBashExePath[[1]] <- "C:\\Program Files (x86)\\Git\\git-bash.exe"
-              gitBashExePath[[2]] <- "C:\\Program Files\\Git\\git-bash.exe"
-              gitBashExists <- sapply(gitBashExePath, file.exists)
-              gitBashExePath <- if (!any(gitBashExists)) {
-                gitBashExePathTry <- suppressWarnings(shell("where git-bash.exe", intern = TRUE))
-                if (grepl("INFO: Could not", gitBashExePathTry)) {
-                  warning("git-bash.exe is not available in your PATH. Please add it. ",
-                          "This means that submodules didn't get updated. ",
-                          "Already tried to find it in:\n  ", paste(unlist(gitBashExePath), collapse = "\n  "))
-                }
-                gitBashExePathTry
+          if (isTRUE(submodule)) {
+            if (file.exists(".gitmodules")) {
+              message("running submodule updates -- VERY EXPERIMENTAL")
+              message("- checking out & pulling the branches indicated in .gitmodules")
+              gitCheckoutEachBranchCmd <- paste("submodule foreach -q --recursive 'branch=\"$(git config -f",
+                                                "$toplevel/.gitmodules submodule.$name.branch)\";",
+                                                "echo $name && git checkout $branch && git pull'")
+              if (.Platform$OS.type != "windows") {
+                test1e <- system2("git", gitCheckoutEachBranchCmd, stdout = TRUE, stderr = TRUE)
+                message("   ", lapply(test1e, paste, "\n   "))
               } else {
-                gitBashExePath[gitBashExists][[1]]
-              }
-              if (file.exists(gitBashExePath)) {
-                cat(file = tmpBat, paste0('cmd /c "',gitBashExePath,'" -c ', #--cd-to-home
-                                         paste0("./",tmpSh)
-                ))
-                shell(tmpBat, intern = TRUE)
+                # Have to make a temporary .bat and .sh file so command can work
+                updateGitTxt <- "updateGit"
+                tmpSh <- paste0(updateGitTxt, i, "_", branch, ".sh")
+                tmpBat <- paste0(updateGitTxt, i, "_", branch, ".bat")
+                on.exit({unlink(tmpSh); unlink(tmpBat)}, add = TRUE)
+                cat(file = tmpSh, fill = FALSE,
+                    paste("#!/bin/bash",
+                          paste("git", gitCheckoutEachBranchCmd), sep = "\n"))
+                gitBashExePath <- list()
+                gitBashExePath[[1]] <- "C:\\Program Files (x86)\\Git\\git-bash.exe"
+                gitBashExePath[[2]] <- "C:\\Program Files\\Git\\git-bash.exe"
+                gitBashExists <- sapply(gitBashExePath, file.exists)
+                gitBashExePath <- if (!any(gitBashExists)) {
+                  gitBashExePathTry <- suppressWarnings(shell("where git-bash.exe", intern = TRUE))
+                  if (grepl("INFO: Could not", gitBashExePathTry)) {
+                    warning("git-bash.exe is not available in your PATH. Please add it. ",
+                            "This means that submodules didn't get updated. ",
+                            "Already tried to find it in:\n  ", paste(unlist(gitBashExePath), collapse = "\n  "))
+                  }
+                  gitBashExePathTry
+                } else {
+                  gitBashExePath[gitBashExists][[1]]
+                }
+                if (file.exists(gitBashExePath)) {
+                  cat(file = tmpBat, paste0('cmd /c "',gitBashExePath,'" -c ', #--cd-to-home
+                                           paste0("./",tmpSh)
+                  ))
+                  shell(tmpBat, intern = TRUE)
+                }
               }
             }
           }
+
+
+          unfinished <- unfinished(test2, i, branch, unfinished,
+                                   expectedMsg = paste0("(up.to.date)|(can be fast)|(Already on)"))
+
         }
 
-
-        unfinished <- unfinished(test2, i, branch, unfinished,
-                                 expectedMsg = paste0("(up.to.date)|(can be fast)|(Already on)"))
-
-      }
-
-      if (!anyBranchExists) {
-        next
+        if (!anyBranchExists) {
+          next
+        }
+      } else {
+        message("Folder ", i, " is not a git repo; skipping")
       }
       isAPackage <- length(dir(pattern = "DESCRIPTION")) > 0
 
@@ -189,7 +196,7 @@ updateGit <- function(pkgs = NULL,
                             reproducible::checkPath(cacheRepo, create = TRUE))
           #suppressPackageStartupMessages(require(reproducible))
           suppressMessages(dig <- reproducible::Cache(reproducible::CacheDigest, d2,
-                           userTags = i))
+                                                      userTags = i))
           #try(detach("package:reproducible", unload = TRUE, character.only = TRUE), silent = TRUE)
           options(opts)
 
