@@ -128,8 +128,7 @@ updateGit <- function(pkgs = NULL,
         if (isTRUE(submodule)) {
           if (file.exists(".gitmodules")) {
             message("running submodule updates -- VERY EXPERIMENTAL")
-            message("- checking out the branches indicated in .gitmodules")
-            browser()
+            message("- checking out & pulling the branches indicated in .gitmodules")
             gitCheckoutEachBranchCmd <- paste("submodule foreach -q --recursive 'branch=\"$(git config -f",
                                               "$toplevel/.gitmodules submodule.$name.branch)\";",
                                               "echo $name && git checkout $branch && git pull'")
