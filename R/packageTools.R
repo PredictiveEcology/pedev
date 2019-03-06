@@ -140,9 +140,11 @@ updateGit <- function(pkgs = NULL,
               } else {
                 if (.Platform$OS.type != "windows") {
                   message("checking out the branch indicated in .gitmodules")
-                  test1e <- system2("git", "submodule foreach -q --recursive 'branch=\"$(git config -f $toplevel/.gitmodules submodule.$name.branch)\"; git checkout $branch'",
+                  system2("git", "submodule foreach -q --recursive 'branch=\"$(git config -f $toplevel/.gitmodules submodule.$name.branch)\"; git checkout $branch'",
                                     stdout = TRUE, stderr = TRUE)
-                  message(test1e)
+                  #message(test1e)
+                  system2("git", "submodule foreach git pull",
+                                    stdout = TRUE, stderr = TRUE)
                 }
                 test1d <- system2("git", "submodule update --remote",
                         stdout = TRUE, stderr = TRUE)
