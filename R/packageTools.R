@@ -125,38 +125,42 @@ updateGit <- function(pkgs = NULL,
           next
         }
 
-        #if (lenUnfinished < length(unfinished)) {
-          if (isTRUE(submodule)) {
-            if (file.exists(".gitmodules")) {
-              message("running submodule updates -- VERY EXPERIMENTAL")
-              if (FALSE) {
-              test1a <- system2("git", args = "submodule foreach git fetch",
-                                stdout = TRUE, stderr = TRUE)
-              test1b <- system2("git", args = "submodule foreach git checkout development",
-                                stdout = TRUE, stderr = TRUE)
-              #git submodule foreach git checkout development
-              test1c <- system2("git", args = "submodule foreach git pull",
-                                stdout = TRUE, stderr = TRUE)
-              } else {
-                if (.Platform$OS.type != "windows") {
-                  message("- checking out the branch indicated in .gitmodules")
-                  test1e <- system2("git", "submodule foreach -q --recursive 'branch=\"$(git config -f $toplevel/.gitmodules submodule.$name.branch)\"; git checkout $branch'",
-                                    stdout = TRUE, stderr = TRUE)
-                  message("   ", lapply(test1e, paste, "\n   "))
-                  message("- pull the branches indicated in .gitmodules")
-                  test1f <- system2("git", "submodule foreach git pull",
-                                    stdout = TRUE, stderr = TRUE)
-                  message("   ", lapply(test1f, paste, "\n   "))
-
-                }
-                test1d <- system2("git", "submodule update --remote",
-                        stdout = TRUE, stderr = TRUE)
-                message("   ", lapply(test1d, paste, "\n   "))
-
-              }
+        if (isTRUE(submodule)) {
+          if (file.exists(".gitmodules")) {
+            message("running submodule updates -- VERY EXPERIMENTAL")
+            message("- checking out the branches indicated in .gitmodules")
+            browser()
+            gitCheckoutEachBranchCmd <- paste("submodule foreach -q --recursive 'branch=\"$(git config -f",
+                                              "$toplevel/.gitmodules submodule.$name.branch)\";",
+                                              "echo $name && git checkout $branch && git pull'")
+            if (.Platform$OS.type != "windows") {
+              test1e <- system2("git", gitCheckoutEachBranchCmd, stdout = TRUE, stderr = TRUE)
+              message("   ", lapply(test1e, paste, "\n   "))
+            } else {
+              # Have to make a temporary .bat and .sh file so command can work
+              tmpSh <- basename(tempfile(fileext = ".sh"))
+              tmpBat <- basename(tempfile(fileext = ".bat"))
+              on.exit({unlink(tmpSh); unlink(tmpBat)}, add = TRUE)
+              cat(file = tmpSh, fill = FALSE,
+                  paste("#!/bin/bash",
+                        paste("git", gitCheckoutEachBranchCmd), sep = "\n"))
+              cat(file = tmpBat, paste('cmd /c "C:\\Progra~2\\Git\\git-bash.exe -c', #--cd-to-home
+                                       paste0("./",tmpSh)
+              ))
+              shell(tmpBat, intern = TRUE)
             }
+            #message("- pull the branches indicated in .gitmodules")
+            #test1f <-
+            #  system2("git", "submodule foreach git pull",
+            #                 stdout = TRUE, stderr = TRUE)
+            #message("   ", lapply(test1f, paste, "\n   "))
+
+            #test1d <- system2("git", "submodule update --remote",
+            #                  stdout = TRUE, stderr = TRUE)
+            #message("   ", lapply(test1d, paste, "\n   "))
+
           }
-        #}
+        }
 
         unfinished <- unfinished(test2, i, branch, unfinished,
                                  expectedMsg = paste0("(up.to.date)|(can be fast)|(Already on)"))
