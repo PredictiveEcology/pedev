@@ -148,16 +148,6 @@ updateGit <- function(pkgs = NULL,
               ))
               shell(tmpBat, intern = TRUE)
             }
-            #message("- pull the branches indicated in .gitmodules")
-            #test1f <-
-            #  system2("git", "submodule foreach git pull",
-            #                 stdout = TRUE, stderr = TRUE)
-            #message("   ", lapply(test1f, paste, "\n   "))
-
-            #test1d <- system2("git", "submodule update --remote",
-            #                  stdout = TRUE, stderr = TRUE)
-            #message("   ", lapply(test1d, paste, "\n   "))
-
           }
         }
 
