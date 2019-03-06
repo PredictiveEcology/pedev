@@ -27,11 +27,11 @@
 #'    then development. If one of them does not exist, it will try, deteremine
 #'    it doesn't exist, skip it and go to next branch.
 #' @param fetch Logical. Should it fetch before pulling.
-#' @param submodules Logical. VERY EXPERIMENTAL. \code{TRUE} would mean pull all
+#' @param submodule Logical. VERY EXPERIMENTAL. \code{TRUE} would mean pull all
 #'   submodules... the problem is that branch gets complicated.
 #' @param ... Passed to \code{devtools::install}
 #' @importFrom reproducible CacheDigest Cache
-#' @importFrom crayon yellow bgBlack
+#' @importFrom crayon yellow bgBlack white bgBlue
 #' @importFrom digest digest
 #' @examples
 #' \dontrun{
@@ -128,8 +128,8 @@ updateGit <- function(pkgs = NULL,
             next
           }
 
-          if (isTRUE(submodule)) {
-            if (file.exists(".gitmodules")) {
+          if (file.exists(".gitmodules")) {
+            if (isTRUE(submodule)) {
               message("running submodule updates -- VERY EXPERIMENTAL")
               message("- checking out & pulling the branches indicated in .gitmodules")
               gitCheckoutEachBranchCmd <- paste("submodule foreach -q --recursive 'branch=\"$(git config -f",
@@ -169,6 +169,9 @@ updateGit <- function(pkgs = NULL,
                   shell(tmpBat, intern = TRUE)
                 }
               }
+            } else {
+              message(crayon::white(crayon::bgBlue("This is a git repository with submodules, but submodule is FALSE;",
+                      "not updating submodules")))
             }
           }
 

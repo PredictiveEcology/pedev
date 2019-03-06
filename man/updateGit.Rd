@@ -25,6 +25,9 @@ other cacheRepo.}
 
 \item{fetch}{Logical. Should it fetch before pulling.}
 
+\item{submodule}{Logical. VERY EXPERIMENTAL. \code{TRUE} would mean pull all
+submodules... the problem is that branch gets complicated.}
+
 \item{...}{Passed to \code{devtools::install}}
 
 \item{branches}{A vector of branch names to pull from, \emph{in reverse order}
@@ -32,9 +35,6 @@ so that the first one is the active branch after this function call finishes.
 Default is \code{c("development", "master")}, so it will pull from master,
 then development. If one of them does not exist, it will try, deteremine
 it doesn't exist, skip it and go to next branch.}
-
-\item{submodules}{Logical. VERY EXPERIMENTAL. \code{TRUE} would mean pull all
-submodules... the problem is that branch gets complicated.}
 }
 \description{
 Fetches all branches, then pulls the identified branch from git,
