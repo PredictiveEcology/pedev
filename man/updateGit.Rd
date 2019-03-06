@@ -57,5 +57,6 @@ updateGit(allPkgs)
 # Will update and install all development branches of all repositories
 #   in ~/GitHub folder
 pedev::updateGit(dir("~/GitHub"))
+
 }
 }

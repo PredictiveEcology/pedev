@@ -44,6 +44,7 @@
 #' # Will update and install all development branches of all repositories
 #' #   in ~/GitHub folder
 #' pedev::updateGit(dir("~/GitHub"))
+#'
 #' }
 updateGit <- function(pkgs = NULL,
                       install = TRUE,
@@ -282,10 +283,18 @@ errorHadAbort <- function(errorMsg, pkg, branch, aborted) {
 }
 
 unfinished <- function(msg, pkg, branch, unfinished, expectedMsg) {
-  if (!all(grepl(expectedMsg, msg))) {
+  thisPkgNameAndBrnch <- paste0(pkg, "@", branch)
+  if (!all(grepl(expectedMsg, msg)) ) {
     unfinishedCur <- list(msg)
-    names(unfinishedCur) <- paste0(pkg, "@", branch)
+    names(unfinishedCur) <- thisPkgNameAndBrnch
     unfinished <- append(unfinished, unfinishedCur)
   }
+  # The second part of the if below is saying that you already have everything locally,
+  #   so it isn't unfinished -- it can install
+  if (any(grepl("Your branch is up to date", msg))) {
+    unfinished[[thisPkgNameAndBrnch]] <- append(unfinished[[thisPkgNameAndBrnch]],
+                                                " -- You may want to push these changes to origin --")
+  }
+
   unfinished
 }
