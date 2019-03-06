@@ -288,13 +288,12 @@ unfinished <- function(msg, pkg, branch, unfinished, expectedMsg) {
     unfinishedCur <- list(msg)
     names(unfinishedCur) <- thisPkgNameAndBrnch
     unfinished <- append(unfinished, unfinishedCur)
+    if (any(grepl("Your branch is up to date", msg))) {
+      unfinished[[thisPkgNameAndBrnch]] <- append(unfinished[[thisPkgNameAndBrnch]],
+                                                  " -- You may want to push these changes to origin --")
+    }
   }
   # The second part of the if below is saying that you already have everything locally,
   #   so it isn't unfinished -- it can install
-  if (any(grepl("Your branch is up to date", msg))) {
-    unfinished[[thisPkgNameAndBrnch]] <- append(unfinished[[thisPkgNameAndBrnch]],
-                                                " -- You may want to push these changes to origin --")
-  }
-
   unfinished
 }
