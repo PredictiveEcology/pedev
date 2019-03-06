@@ -143,13 +143,31 @@ updateGit <- function(pkgs = NULL,
               cat(file = tmpSh, fill = FALSE,
                   paste("#!/bin/bash",
                         paste("git", gitCheckoutEachBranchCmd), sep = "\n"))
-              cat(file = tmpBat, paste('cmd /c "C:\\Progra~2\\Git\\git-bash.exe -c', #--cd-to-home
-                                       paste0("./",tmpSh)
-              ))
-              shell(tmpBat, intern = TRUE)
+              gitBashExePath <- list()
+              gitBashExePath[[1]] <- "C:\\Program Files (x86)\\Git\\git-bash.exe"
+              gitBashExePath[[2]] <- "C:\\Program Files\\Git\\git-bash.exe"
+              gitBashExists <- sapply(gitBashExePath, file.exists)
+              gitBashExePath <- if (!any(gitBashExists)) {
+                gitBashExePathTry <- suppressWarnings(shell("where git-bash.exe", intern = TRUE))
+                if (grepl("INFO: Could not", gitBashExePathTry)) {
+                  warning("git-bash.exe is not available in your PATH. Please add it. ",
+                          "This means that submodules didn't get updated. ",
+                          "Already tried to find it in:\n  ", paste(unlist(gitBashExePath), collapse = "\n  "))
+                }
+                gitBashExePathTry
+              } else {
+                gitBashExePath[gitBashExists][[1]]
+              }
+              if (file.exists(gitBashExePath)) {
+                cat(file = tmpBat, paste0('cmd /c "',gitBashExePath,'" -c ', #--cd-to-home
+                                         paste0("./",tmpSh)
+                ))
+                shell(tmpBat, intern = TRUE)
+              }
             }
           }
         }
+
 
         unfinished <- unfinished(test2, i, branch, unfinished,
                                  expectedMsg = paste0("(up.to.date)|(can be fast)|(Already on)"))
