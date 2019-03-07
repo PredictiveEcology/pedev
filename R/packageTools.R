@@ -144,6 +144,7 @@ updateGit <- function(pkgs = NULL,
                 updateGitTxt <- "updateGit"
                 tmpSh <- paste0(updateGitTxt, i, "_", branch, ".sh")
                 tmpBat <- paste0(updateGitTxt, i, "_", branch, ".bat")
+                # Delete
                 on.exit({unlink(tmpSh); unlink(tmpBat)}, add = TRUE)
                 cat(file = tmpSh, fill = FALSE,
                     paste("#!/bin/bash",
@@ -169,6 +170,7 @@ updateGit <- function(pkgs = NULL,
                   ))
                   shell(tmpBat, intern = TRUE)
                 }
+                unlink(tmpSh); unlink(tmpBat)
               }
             } else {
               message(crayon::white(crayon::bgBlue("This is a git repository with submodules, but submodule is FALSE;",
