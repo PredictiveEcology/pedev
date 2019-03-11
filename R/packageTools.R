@@ -2,7 +2,8 @@
 #'
 #' Fetches all branches, then pulls the identified branch from git,
 #' then runs a digest on the local folders. If that digest is different
-#' as a previous one, then the function will run \code{devtools::install}.
+#' as a previous one, then the function will run
+#' \code{devtools::install(dependencies = FALSE, reload = FALSE, quick = TRUE, ...)}.
 #' This should be safe even in cases where local files have changed. If
 #' they were uncommitted, Git will error, and nothing will be pulled,
 #' and if they were committed, then it will try a merge. If the automoated
@@ -26,6 +27,7 @@
 #'    Default is \code{c("development", "master")}, so it will pull from master,
 #'    then development. If one of them does not exist, it will try, deteremine
 #'    it doesn't exist, skip it and go to next branch.
+#' @inheritParams devtools::install
 #' @param fetch Logical. Should it fetch before pulling.
 #' @param submodule Logical. VERY EXPERIMENTAL. \code{TRUE} would mean pull all
 #'   submodules... the problem is that branch gets complicated.
@@ -51,6 +53,8 @@ updateGit <- function(pkgs = NULL,
                       branch = c("development", "master"),
                       cacheRepo = getOption("pedev.cacheRepo", "~/.pedevCache"),
                       fetch = TRUE, submodule = FALSE,
+                      quick = TRUE, dependencies = FALSE,
+                      reload = FALSE,
                       ...) {
   oldWd <- getwd()
   on.exit(setwd(oldWd))
@@ -206,7 +210,9 @@ updateGit <- function(pkgs = NULL,
 
           if (attr(dig, ".Cache")$newCache) {
             message("  installing ... ")
-            devtools::install(dependencies = FALSE, reload = FALSE, ...)
+            devtools::install(dependencies = dependencies,
+                              reload = reload,
+                              quick = quick, ...)
           } else {
             message("  not reinstalling; already installed this version")
           }

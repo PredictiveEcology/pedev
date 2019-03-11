@@ -6,7 +6,8 @@
 \usage{
 updateGit(pkgs = NULL, install = TRUE, branch = c("development",
   "master"), cacheRepo = getOption("pedev.cacheRepo", "~/.pedevCache"),
-  fetch = TRUE, submodule = FALSE, ...)
+  fetch = TRUE, submodule = FALSE, quick = TRUE,
+  dependencies = FALSE, reload = FALSE, ...)
 }
 \arguments{
 \item{pkgs}{A character vector of package names, which is actually
@@ -28,6 +29,21 @@ other cacheRepo.}
 \item{submodule}{Logical. VERY EXPERIMENTAL. \code{TRUE} would mean pull all
 submodules... the problem is that branch gets complicated.}
 
+\item{quick}{if \code{TRUE} skips docs, multiple-architectures,
+demos, and vignettes, to make installation as fast as possible.}
+
+\item{dependencies}{Which dependencies do you want to check?
+Can be a character vector (selecting from "Depends", "Imports",
+"LinkingTo", "Suggests", or "Enhances"), or a logical vector.
+
+\code{TRUE} is shorthand for "Depends", "Imports", "LinkingTo" and
+"Suggests". \code{NA} is shorthand for "Depends", "Imports" and "LinkingTo"
+and is the default. \code{FALSE} is shorthand for no dependencies (i.e.
+just check this package, not its dependencies).}
+
+\item{reload}{if \code{TRUE} (the default), will automatically reload the
+package after installing.}
+
 \item{...}{Passed to \code{devtools::install}}
 
 \item{branches}{A vector of branch names to pull from, \emph{in reverse order}
@@ -39,7 +55,8 @@ it doesn't exist, skip it and go to next branch.}
 \description{
 Fetches all branches, then pulls the identified branch from git,
 then runs a digest on the local folders. If that digest is different
-as a previous one, then the function will run \code{devtools::install}.
+as a previous one, then the function will run
+\code{devtools::install(dependencies = FALSE, reload = FALSE, quick = TRUE, ...)}.
 This should be safe even in cases where local files have changed. If
 they were uncommitted, Git will error, and nothing will be pulled,
 and if they were committed, then it will try a merge. If the automoated
