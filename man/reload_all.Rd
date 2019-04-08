@@ -4,10 +4,17 @@
 \alias{reload_all}
 \title{A verion of devtools::load_all that detaches dependencies}
 \usage{
-reload_all(pkgs, load_all = TRUE, gitPath = "~/GitHub")
+reload_all(pkgs, allPkgs = c("amc", "SpaDES.addins", "LandR", "pedev",
+  "pemisc", "map", "SpaDES.tools", "SpaDES.core", "SpaDES",
+  "reproducible"), load_all = TRUE, gitPath = "~/GitHub")
 }
 \arguments{
 \item{pkgs}{A character vector of the package(s) to run "devtools::load_all"}
+
+\item{allPkgs}{A character vector of the packages that are "reverse" depdencies
+of \code{pkgs}. Since this isn't easy to actually derive automatically, this function
+relies on this manual vector. The defaults here are the collection of PredictiveEcology
+packages.}
 
 \item{load_all}{Logical. If \code{FALSE}, then this function will only
 detach the packages necessary}
