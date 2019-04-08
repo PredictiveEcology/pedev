@@ -244,16 +244,22 @@ updateGit <- function(pkgs = NULL,
 #' This is very idiosyncratic for the Predictive Ecology group
 #' @export
 #' @param pkgs A character vector of the package(s) to run "devtools::load_all"
+#' @param allPkgs A character vector of the packages that are "reverse" depdencies
+#'     of \code{pkgs}. Since this isn't easy to actually derive automatically, this function
+#'     relies on this manual vector. The defaults here are the collection of PredictiveEcology
+#'     packages.
 #' @param load_all Logical. If \code{FALSE}, then this function will only
 #'   detach the packages necessary
-reload_all <- function(pkgs, load_all = TRUE, gitPath = "~/GitHub") {
-  allPkgs <- c("LandR", "SpaDES.core", "SpaDES.tools", "map", "pemisc",
-               "pedev", "reproducible",
-               "quickPlot", "amc")
+reload_all <- function(pkgs,
+                       allPkgs = c("amc", "SpaDES.addins", "LandR", "pedev", "pemisc", "map", "SpaDES.tools",
+                                   "SpaDES.core", "SpaDES", "reproducible"),
+                       load_all = TRUE, gitPath = "~/GitHub") {
+
+  ordGeneral1 <- Cache(.pkgDepsGraph, pkgs = allPkgs)
+  ordGeneral2 <- igraph::topo_sort(ordGeneral1)
+  allPkgs <- names(ordGeneral2)
+
   if (length(pkgs) > 1) {
-    # ordGeneral1 <- .pkgDepsGraph(pkgs = allPkgs)
-    # ordGeneral2 <- igraph::topo_sort(ordGeneral1)
-    # allPkgs <- names(ordGeneral2)
     if (!all(pkgs %in% allPkgs)) {
       ord1 <- .pkgDepsGraph(pkgs = pkgs)
       ord2 <- igraph::topo_sort(ord1)
@@ -272,7 +278,9 @@ reload_all <- function(pkgs, load_all = TRUE, gitPath = "~/GitHub") {
     #for (i in pkgs) {
     if (isNamespaceLoaded(i)) {
       pkgsToUnload2 <- c(i, pkgsToUnload2)
-      try(detach(paste0("package:", i), unload = TRUE, character.only = TRUE))
+      if (!any(i %in% c("reproducible"))) { # skip unloading reproducible because it is needed for this function
+        tryCatch(detach(paste0("package:", i), unload = TRUE, character.only = TRUE), error = function(x) print(i))
+      }
     }
   }
   if (isTRUE(load_all))
