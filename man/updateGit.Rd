@@ -20,6 +20,12 @@ i.e., one folder up from the current active folder if it doesn't find
 there is new content. If \code{branch} was length > 1, only the active,
 i.e., first branch, will be installed.}
 
+\item{branch}{A vector of branch names to pull from, \emph{in reverse order}
+so that the first one is the active branch after this function call finishes.
+Default is \code{c("development", "master")}, so it will pull from master,
+then development. If one of them does not exist, it will try, deteremine
+it doesn't exist, skip it and go to next branch.}
+
 \item{cacheRepo}{The location where subsequent calls will store their history.
 To be most effective, this should be "persistent", and not part of any
 other cacheRepo.}
@@ -45,12 +51,6 @@ just check this package, not its dependencies).}
 package after installing.}
 
 \item{...}{Passed to \code{devtools::install}}
-
-\item{branches}{A vector of branch names to pull from, \emph{in reverse order}
-so that the first one is the active branch after this function call finishes.
-Default is \code{c("development", "master")}, so it will pull from master,
-then development. If one of them does not exist, it will try, deteremine
-it doesn't exist, skip it and go to next branch.}
 }
 \description{
 Fetches all branches, then pulls the identified branch from git,

@@ -2,7 +2,7 @@
 % Please edit documentation in R/packageTools.R
 \name{reload_all}
 \alias{reload_all}
-\title{A verion of devtools::load_all that detaches dependencies}
+\title{A version of \code{devtools::load_all} that detaches dependencies}
 \usage{
 reload_all(pkgs, allPkgs = c("amc", "SpaDES.addins", "LandR", "pedev",
   "pemisc", "map", "SpaDES.tools", "SpaDES.core", "SpaDES",
@@ -18,7 +18,9 @@ packages.}
 
 \item{load_all}{Logical. If \code{FALSE}, then this function will only
 detach the packages necessary}
+
+\item{gitPath}{Directory path used for git repositories}
 }
 \description{
-This is very idiosyncratic for the Predictive Ecology group
+This is very idiosyncratic for the Predictive Ecology group.
 }

@@ -22,7 +22,7 @@
 #' @param cacheRepo The location where subsequent calls will store their history.
 #'   To be most effective, this should be "persistent", and not part of any
 #'   other cacheRepo.
-#' @param branches A vector of branch names to pull from, \emph{in reverse order}
+#' @param branch A vector of branch names to pull from, \emph{in reverse order}
 #'    so that the first one is the active branch after this function call finishes.
 #'    Default is \code{c("development", "master")}, so it will pull from master,
 #'    then development. If one of them does not exist, it will try, deteremine
@@ -239,9 +239,10 @@ updateGit <- function(pkgs = NULL,
 }
 
 
-#' A verion of devtools::load_all that detaches dependencies
+#' A version of \code{devtools::load_all} that detaches dependencies
 #'
-#' This is very idiosyncratic for the Predictive Ecology group
+#' This is very idiosyncratic for the Predictive Ecology group.
+#'
 #' @export
 #' @param pkgs A character vector of the package(s) to run "devtools::load_all"
 #' @param allPkgs A character vector of the packages that are "reverse" depdencies
@@ -250,6 +251,8 @@ updateGit <- function(pkgs = NULL,
 #'     packages.
 #' @param load_all Logical. If \code{FALSE}, then this function will only
 #'   detach the packages necessary
+#' @param gitPath Directory path used for git repositories
+#'
 reload_all <- function(pkgs,
                        allPkgs = c("amc", "SpaDES.addins", "LandR", "pedev", "pemisc", "map", "SpaDES.tools",
                                    "SpaDES.core", "SpaDES", "reproducible"),
