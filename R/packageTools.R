@@ -287,8 +287,8 @@ reload_all <- function(pkgs,
     }
   }
   if (isTRUE(load_all))
-    for (i in pkgsToUnload2) {
-      devtools::load_all(file.path(gitPath, i))
+    for (i in c(pkgs, pkgsToUnload2)) {
+      try(devtools::load_all(file.path(gitPath, i)), silent = TRUE)
     }
 }
 
