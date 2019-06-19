@@ -255,7 +255,7 @@ updateGit <- function(pkgs = NULL,
 #'
 reload_all <- function(pkgs,
                        allPkgs = c("amc", "SpaDES.addins", "LandR", "pedev", "pemisc", "map", "SpaDES.tools",
-                                   "SpaDES.core", "SpaDES", "reproducible"),
+                                   "SpaDES.core", "SpaDES", "reproducible", "LandWebUtils"),
                        load_all = TRUE, gitPath = "~/GitHub") {
 
   ordGeneral1 <- Cache(.pkgDepsGraph, pkgs = allPkgs)
@@ -276,13 +276,21 @@ reload_all <- function(pkgs,
   else
     character(0)
 
+  srch <- search()
   pkgsToUnload2 <- character()
   for (i in pkgsToUnload) {
     #for (i in pkgs) {
     if (isNamespaceLoaded(i)) {
-      pkgsToUnload2 <- c(i, pkgsToUnload2)
+      pkgsToUnload2 <- unique(c(i, pkgsToUnload2))
       if (!any(i %in% c("reproducible"))) { # skip unloading reproducible because it is needed for this function
-        tryCatch(detach(paste0("package:", i), unload = TRUE, character.only = TRUE), error = function(x) print(i))
+        pkgString <- paste0("package:", i)
+        if (!pkgString %in% srch) { # may be only in Namespace
+          unloadNamespace(i)
+        } else {
+        #tryCatch(
+          detach(pkgString, unload = TRUE, character.only = TRUE)
+        #, error = function(x) {print(i); browser()})
+        }
       }
     }
   }
