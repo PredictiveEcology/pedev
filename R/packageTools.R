@@ -286,10 +286,11 @@ reload_all <- function(pkgs,
       }
     }
   }
-  if (isTRUE(load_all))
+  if (isTRUE(load_all)) {
     for (i in unique(c(pkgs, pkgsToUnload2))) {
-      try(devtools::load_all(file.path(gitPath, i)), silent = TRUE)
+      try(devtools::load_all(file.path(gitPath, i)), silent = FALSE)
     }
+  }
 }
 
 errorHadAbort <- function(errorMsg, pkg, branch, aborted) {
