@@ -57,7 +57,6 @@ updateGit <- function(pkgs = NULL,
                       reload = FALSE,
                       ...) {
   oldWd <- getwd()
-  on.exit(setwd(oldWd))
   if (missing(pkgs))
     pkgs <- basename(getwd())
 
@@ -65,6 +64,7 @@ updateGit <- function(pkgs = NULL,
   aborted <- list()
   unfinished <- list()
   on.exit({
+    setwd(oldWd)
     if (length(aborted)) {
       message(crayon::magenta(
         "                                                        \n",
