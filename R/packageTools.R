@@ -111,7 +111,6 @@ updateGit <- function(pkgs = NULL,
         anyBranchExists <- FALSE
         for (branch in rev(branches)) {
           cmd1 <- paste("checkout", branch)
-          message("  ", cmd1)
           test1 <- suppressWarnings(system2("git", args = cmd1, stdout = TRUE, stderr = TRUE))
           message("    ", paste(test1, collapse = "\n"))
           if (any(grepl("error", c(test1)))) {
