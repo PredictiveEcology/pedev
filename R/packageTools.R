@@ -88,13 +88,16 @@ updateGit <- function(pkgs = NULL,
     insidePkg <- file.path(oldWd, "..", pkgDir)
     dirExistsA <- dir.exists(file.path(oldWd, pkgDir))
     dirExistsB <- dir.exists(insidePkg)
-    if (dirExistsA || dirExistsB) {
+    dirExistsC <- dir.exists(pkgDir)
+    if (dirExistsA || dirExistsB || dirExistsC) {
       message("#########################################################")
       message(crayon::bgBlack(crayon::yellow("updating ", i)))
       if (dirExistsA) {
         setwd(pkgDir)
-      } else {
+      } else if (dirExistsB) {
         setwd(insidePkg)
+      } else if (dirExistsC) {
+        setwd(pkgDir)
       }
 
       if (isTRUE(fetch)) {
