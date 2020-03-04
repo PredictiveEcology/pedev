@@ -31,7 +31,7 @@
 #'   submodules... the problem is that branch gets complicated.
 #' @param ... Passed to \code{devtools::install}
 #' @importFrom reproducible CacheDigest Cache
-#' @importFrom crayon yellow bgBlack
+#' @importFrom crayon yellow bgBlack green
 #' @importFrom digest digest
 #' @examples
 #' \dontrun{
@@ -52,7 +52,7 @@ updateGit <- function(pkgs = NULL,
                       fetch = TRUE, submodule = FALSE,
                       ...) {
   oldWd <- getwd()
-  on.exit(setwd(oldWd))
+  on.exit(setwd(oldWd), add = TRUE)
   if (missing(pkgs))
     pkgs <- basename(getwd())
 
@@ -64,22 +64,24 @@ updateGit <- function(pkgs = NULL,
       message(crayon::magenta(
         "                                                        \n",
         "########### Summary of aborted cases  #######################\n",
-        "  -", paste(lapply(names(aborted),
+        "  -", paste(unique(lapply(names(aborted),
                              function(nam)
-                               paste(c(nam, aborted[[nam]]), collapse = "\n       ")),
+                               paste(c(nam, aborted[[nam]]), collapse = "\n       "))),
                       collapse = "\n   - ")))
     }
     if (length(unfinished)) {
       message(crayon::blue(
         "                                                        \n",
-        "########### Summary of unfinished cases  #######################\n",
-        "  -", paste(lapply(names(unfinished),
+        "###########      Summary of cases that had no git errors       ##############\n",
+        "########### (maybe completed pull/install & may still need push) ############\n",
+        "  -", paste(unique(lapply(names(unfinished),
                             function(nam)
-                              paste(c(nam, unfinished[[nam]]), collapse = "\n       ")),
+                              paste(c(basename(nam), unfinished[[nam]]),
+                                    collapse = "\n       "))),
                      collapse = "\n   - ")))
     }
 
-  }, add = FALSE)
+  }, add = TRUE)
 
   for (i in pkgs) {
     pkgDir <- paste0(i)
@@ -161,7 +163,7 @@ updateGit <- function(pkgs = NULL,
       }
       isAPackage <- length(dir(pattern = "DESCRIPTION")) > 0
 
-      if (!isAPackage) message("Not a package; no install")
+      if (!isAPackage) message(crayon::green("Not a package; no install"))
       if (isTRUE(install)) {
         if (isAPackage) {
           files <- dir(recursive = TRUE)

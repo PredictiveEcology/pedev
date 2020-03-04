@@ -3,6 +3,7 @@
 export(reload_all)
 export(updateGit)
 importFrom(crayon,bgBlack)
+importFrom(crayon,green)
 importFrom(crayon,yellow)
 importFrom(digest,digest)
 importFrom(reproducible,Cache)
