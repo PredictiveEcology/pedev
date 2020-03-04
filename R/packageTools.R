@@ -227,7 +227,8 @@ updateGit <- function(pkgs = NULL,
 
 .pkgDepsGraph <- function(pkgs) {
   dt <- lapply(pkgs, function(pkg) {
-    deps <- pkgs[pkgs %in% reproducible::pkgDep(pkg)[[1]]]
+    deps1 <- tryCatch(reproducible::pkgDep(pkg), error = function(x) "")
+    deps <- pkgs[pkgs %in% deps1[[1]]]
     if (NROW(deps))
       data.table::data.table(pkg = pkg,
                              depends = deps)
