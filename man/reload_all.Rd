@@ -4,9 +4,13 @@
 \alias{reload_all}
 \title{A version of \code{devtools::load_all} that detaches dependencies}
 \usage{
-reload_all(pkgs, allPkgs = c("amc", "SpaDES.addins", "LandR", "pedev",
-  "pemisc", "map", "SpaDES.tools", "SpaDES.core", "SpaDES",
-  "reproducible"), load_all = TRUE, gitPath = "~/GitHub")
+reload_all(
+  pkgs,
+  allPkgs = c("amc", "SpaDES.addins", "LandR", "pedev", "pemisc", "map", "SpaDES.tools",
+    "SpaDES.core", "SpaDES", "reproducible", "LandWebUtils"),
+  load_all = TRUE,
+  gitPath = "~/GitHub"
+)
 }
 \arguments{
 \item{pkgs}{A character vector of the package(s) to run "devtools::load_all"}

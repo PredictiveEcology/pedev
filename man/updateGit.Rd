@@ -4,10 +4,18 @@
 \alias{updateGit}
 \title{Pull from git and install}
 \usage{
-updateGit(pkgs = NULL, install = TRUE, branch = c("development",
-  "master"), cacheRepo = getOption("pedev.cacheRepo", "~/.pedevCache"),
-  fetch = TRUE, submodule = FALSE, quick = TRUE,
-  dependencies = FALSE, reload = FALSE, ...)
+updateGit(
+  pkgs = NULL,
+  install = TRUE,
+  branch = c("development", "master"),
+  cacheRepo = getOption("pedev.cacheRepo", "~/.pedevCache"),
+  fetch = TRUE,
+  submodule = FALSE,
+  quick = TRUE,
+  dependencies = FALSE,
+  reload = FALSE,
+  ...
+)
 }
 \arguments{
 \item{pkgs}{A character vector of package names, which is actually
