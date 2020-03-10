@@ -3,6 +3,7 @@
 export(file.sizeCompare)
 export(file.sizeWOLinks)
 export(reload_all)
+export(rmDotUnderline)
 export(updateGit)
 importFrom(crayon,bgBlack)
 importFrom(crayon,green)
