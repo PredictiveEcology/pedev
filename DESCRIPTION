@@ -21,6 +21,7 @@ Imports:
     data.table,
     igraph,
     reproducible,
+    testthat
 Encoding: UTF-8
 Language: en-CA
 License: GPL-3
