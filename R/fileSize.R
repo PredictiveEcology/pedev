@@ -71,8 +71,9 @@ file.sizeCompare <- function(path = ".", units = "auto", recursive = TRUE) {
   setwd(old)
   class(e) <- "object_size";
   f <- sum(unlist(a))
+  class(f) <- "object_size"
   message(paste("File size (normal):                  ", format(e, units = units)))
-  message(paste("File size (link duplicates omitted): ", format(e - f, units = units)))
+  message(paste("File size (link duplicates omitted): ", format(f, units = units)))
   message(paste("Difference (disk space saved):       ", format(e - f, units = units)))
 
   invisible(list(file.size = e, file.sizeWOLinks = a))
