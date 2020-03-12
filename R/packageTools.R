@@ -215,38 +215,35 @@ updateGit <- function(pkgs = NULL,
 #' @param load_all Logical. If \code{FALSE}, then this function will only
 #'   detach the packages necessary
 reload_all <- function(pkgs, load_all = TRUE, gitPath = "~/GitHub") {
-  allPkgs <- c("LandR", "SpaDES.core", "SpaDES.tools", "map", "pemisc",
-               "pedev", "reproducible",
-               "quickPlot", "amc")
-  if (length(pkgs) > 1) {
-    # ordGeneral1 <- .pkgDepsGraph(pkgs = allPkgs)
-    # ordGeneral2 <- igraph::topo_sort(ordGeneral1)
-    # allPkgs <- names(ordGeneral2)
-    if (!all(pkgs %in% allPkgs)) {
-      ord1 <- .pkgDepsGraph(pkgs = pkgs)
-      ord2 <- igraph::topo_sort(ord1)
-      pkgs <- names(ord2)
-    }
-  }
+  deps <- c(pkgs, tools::dependsOnPkgs(pkgs))
+  actuallyLoaded <- unique(c(pkgs, deps[deps %in% gsub("package:", "", search())]))
+  names(actuallyLoaded) <- actuallyLoaded
+  al <- lapply(actuallyLoaded, tools::dependsOnPkgs)
+  nams <- names(al)
+  names(nams) <- nams
+  anyAll <- unique(unlist(lapply(nams, function(x) {
+    nams <- names(al[grep(x, names(al), invert = TRUE, value = TRUE)])
+    nams[nams %in% al[[x]]]
+  })))
+  needToReload <- nams[!nams %in% anyAll]
 
-  wh <- which(allPkgs %in% pkgs)
-  pkgsToUnload <- if (length(wh) > 0)
-    allPkgs[seq(max(wh))]
-  else
-    character(0)
-
-  pkgsToUnload2 <- character()
-  for (i in pkgsToUnload) {
-    #for (i in pkgs) {
-    if (isNamespaceLoaded(i)) {
-      pkgsToUnload2 <- c(i, pkgsToUnload2)
-      try(detach(paste0("package:", i), unload = TRUE, character.only = TRUE))
-    }
+  names(deps) <- deps
+  out <- 1
+  while(!is.null(unlist(out))) {
+    out <- lapply(deps, function(i) {
+      try(detach(paste0("package:", i), unload = TRUE, character.only = TRUE), silent = TRUE)
+    })
+    out <- lapply(deps, function(i) {
+      try(unloadNamespace(i), silent = TRUE)
+    })
   }
   if (isTRUE(load_all))
-    for (i in pkgsToUnload2) {
-      devtools::load_all(file.path(gitPath, i))
-    }
+    out <- lapply(needToReload, function(i) {
+      out <- try(devtools::load_all(file.path(gitPath, i)))
+      if (is(out, "try-error"))
+        out <- require(i, character.only = TRUE)
+    })
+  invisible(out)
 }
 
 errorHadAbort <- function(errorMsg, pkg, branch, aborted) {
