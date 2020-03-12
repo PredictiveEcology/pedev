@@ -225,7 +225,9 @@ reload_all <- function(pkgs, load_all = TRUE, gitPath = "~/GitHub") {
     nams <- names(al[grep(x, names(al), invert = TRUE, value = TRUE)])
     nams[nams %in% al[[x]]]
   })))
-  needToReload <- nams[!nams %in% anyAll]
+  needToReload <- rev(actuallyLoaded)
+  #needToReload <- nams[!nams %in% anyAll]
+  #needToReload <- unique(c(pkgs, needToReload))
 
   names(deps) <- deps
   out <- 1
@@ -239,9 +241,11 @@ reload_all <- function(pkgs, load_all = TRUE, gitPath = "~/GitHub") {
   }
   if (isTRUE(load_all))
     out <- lapply(needToReload, function(i) {
-      out <- try(devtools::load_all(file.path(gitPath, i)))
-      if (is(out, "try-error"))
-        out <- require(i, character.only = TRUE)
+      if (!any(grepl(i, search()))) {
+        out <- try(devtools::load_all(file.path(gitPath, i)))
+        if (is(out, "try-error"))
+          out <- require(i, character.only = TRUE)
+      }
     })
   invisible(out)
 }
