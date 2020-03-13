@@ -239,14 +239,38 @@ reload_all <- function(pkgs, load_all = TRUE, gitPath = "~/GitHub") {
       try(unloadNamespace(i), silent = TRUE)
     })
   }
-  if (isTRUE(load_all))
-    out <- lapply(needToReload, function(i) {
-      if (!any(grepl(i, search()))) {
+  aa <- lapply(needToReload, tools::dependsOnPkgs)
+  # aa <- aa[order(unlist(lapply(aa, length)))]
+
+
+  notInOrder <- TRUE
+  isCorrectOrder <- logical(length(aa))
+  i <- 1
+  newOrd <- numeric(0)
+  for (i in seq_along(aa)) {
+    dif <- setdiff(seq_along(aa), newOrd)
+    for (j in dif) {
+      isCorrectOrder <- !any(aa[[j]] %in% names(aa)[dif])
+      if (isCorrectOrder) {
+        newOrd <- c(newOrd, j)
+        i <- i + 1
+        break
+      }
+    }
+  }
+  needToReload <- aa[newOrd]
+
+  needToReloadNames <- names(needToReload)
+  names(needToReloadNames) <- needToReloadNames
+  if (isTRUE(load_all)) {
+    out <- lapply(rev(needToReloadNames), function(i) {
+      #if (!any(grepl(i, search()))) {
         out <- try(devtools::load_all(file.path(gitPath, i)))
         if (is(out, "try-error"))
           out <- require(i, character.only = TRUE)
-      }
+      #}
     })
+  }
   invisible(out)
 }
 
