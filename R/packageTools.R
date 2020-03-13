@@ -265,9 +265,12 @@ reload_all <- function(pkgs, load_all = TRUE, gitPath = "~/GitHub") {
   if (isTRUE(load_all)) {
     out <- lapply(rev(needToReloadNames), function(i) {
       #if (!any(grepl(i, search()))) {
-        out <- try(devtools::load_all(file.path(gitPath, i)))
-        if (is(out, "try-error"))
+        out <- try(devtools::load_all(file.path(gitPath, i)), silent = TRUE)
+        if (is(out, "try-error")) {
+          message(i, " is not a local package in ", gitPath, "; loading via install.packages...")
           out <- require(i, character.only = TRUE)
+        }
+
       #}
     })
   }
