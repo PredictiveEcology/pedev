@@ -216,7 +216,11 @@ updateGit <- function(pkgs = NULL,
 #'   detach the packages necessary
 reload_all <- function(pkgs, load_all = TRUE, gitPath = "~/GitHub") {
   deps <- c(pkgs, tools::dependsOnPkgs(pkgs))
+  nsLoaded <- deps[unlist(lapply(deps, isNamespaceLoaded))]
+
   actuallyLoaded <- unique(c(pkgs, deps[deps %in% gsub("package:", "", search())]))
+  nsLoadedOnly <- setdiff(nsLoaded, actuallyLoaded)
+  names(nsLoadedOnly) <- nsLoadedOnly
   names(actuallyLoaded) <- actuallyLoaded
   al <- lapply(actuallyLoaded, tools::dependsOnPkgs)
   nams <- names(al)
@@ -233,10 +237,14 @@ reload_all <- function(pkgs, load_all = TRUE, gitPath = "~/GitHub") {
   out <- 1
   while(!is.null(unlist(out))) {
     out <- lapply(deps, function(i) {
-      try(detach(paste0("package:", i), unload = TRUE, character.only = TRUE), silent = TRUE)
+      if (i != pkgs[1]) {
+        try(detach(paste0("package:", i), unload = TRUE, character.only = TRUE), silent = TRUE)
+      }
     })
     out <- lapply(deps, function(i) {
-      try(unloadNamespace(i), silent = TRUE)
+      if (i != pkgs[1]) {
+        try(unloadNamespace(i), silent = TRUE)
+      }
     })
   }
   aa <- lapply(needToReload, tools::dependsOnPkgs)
@@ -264,14 +272,14 @@ reload_all <- function(pkgs, load_all = TRUE, gitPath = "~/GitHub") {
   names(needToReloadNames) <- needToReloadNames
   if (isTRUE(load_all)) {
     out <- lapply(rev(needToReloadNames), function(i) {
-      #if (!any(grepl(i, search()))) {
+      if (i != "SpaDES") {
         out <- try(devtools::load_all(file.path(gitPath, i)), silent = TRUE)
         if (is(out, "try-error")) {
           message(i, " is not a local package in ", gitPath, "; loading via install.packages...")
           out <- require(i, character.only = TRUE)
         }
 
-      #}
+      }
     })
   }
   invisible(out)
