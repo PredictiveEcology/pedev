@@ -258,57 +258,75 @@ updateGit <- function(pkgs = NULL,
 #'     packages.
 #' @param load_all Logical. If \code{FALSE}, then this function will only
 #'   detach the packages necessary
-#' @param gitPath Directory path used for git repositories
-#'
-reload_all <- function(pkgs,
-                       allPkgs = c("amc", "SpaDES.addins", "LandR", "pedev", "pemisc", "map", "SpaDES.tools",
-                                   "SpaDES.core", "SpaDES", "reproducible", "LandWebUtils"),
-                       load_all = TRUE, gitPath = "~/GitHub") {
+reload_all <- function(pkgs, load_all = TRUE, gitPath = "~/GitHub") {
+  deps <- c(pkgs, tools::dependsOnPkgs(pkgs))
+  nsLoaded <- deps[unlist(lapply(deps, isNamespaceLoaded))]
 
-  ordGeneral1 <- Cache(.pkgDepsGraph, pkgs = allPkgs)
-  ordGeneral2 <- igraph::topo_sort(ordGeneral1)
-  allPkgs <- names(ordGeneral2)
+  actuallyLoaded <- unique(c(pkgs, deps[deps %in% gsub("package:", "", search())]))
+  nsLoadedOnly <- setdiff(nsLoaded, actuallyLoaded)
+  names(nsLoadedOnly) <- nsLoadedOnly
+  names(actuallyLoaded) <- actuallyLoaded
+  al <- lapply(actuallyLoaded, tools::dependsOnPkgs)
+  nams <- names(al)
+  names(nams) <- nams
+  anyAll <- unique(unlist(lapply(nams, function(x) {
+    nams <- names(al[grep(x, names(al), invert = TRUE, value = TRUE)])
+    nams[nams %in% al[[x]]]
+  })))
+  needToReload <- rev(actuallyLoaded)
+  #needToReload <- nams[!nams %in% anyAll]
+  #needToReload <- unique(c(pkgs, needToReload))
 
-  if (length(pkgs) > 1) {
-    if (!all(pkgs %in% allPkgs)) {
-      ord1 <- .pkgDepsGraph(pkgs = pkgs)
-      ord2 <- igraph::topo_sort(ord1)
-      pkgs <- names(ord2)
-    }
+  names(deps) <- deps
+  out <- 1
+  while(!is.null(unlist(out))) {
+    out <- lapply(deps, function(i) {
+      if (i != pkgs[1]) {
+        try(detach(paste0("package:", i), unload = TRUE, character.only = TRUE), silent = TRUE)
+      }
+    })
+    out <- lapply(deps, function(i) {
+      if (i != pkgs[1]) {
+        try(unloadNamespace(i), silent = TRUE)
+      }
+    })
   }
+  aa <- lapply(needToReload, tools::dependsOnPkgs)
+  # aa <- aa[order(unlist(lapply(aa, length)))]
 
-  wh <- which(allPkgs %in% pkgs)
-  pkgsToUnload <- if (length(wh) > 0)
-    allPkgs[seq(max(wh))]
-  else
-    character(0)
 
-  srch <- search()
-  pkgsToUnload2 <- character()
-  for (i in pkgsToUnload) {
-    #for (i in pkgs) {
-    if (isNamespaceLoaded(i)) {
-      pkgsToUnload2 <- unique(c(i, pkgsToUnload2))
-      if (!any(i %in% c("reproducible"))) { # skip unloading reproducible because it is needed for this function
-        pkgString <- paste0("package:", i)
-        if (!pkgString %in% srch) { # may be only in Namespace
-          unloadNamespace(i)
-        } else {
-        #tryCatch(
-          detach(pkgString, unload = TRUE, character.only = TRUE)
-        #, error = function(x) {print(i); browser()})
-        }
+  notInOrder <- TRUE
+  isCorrectOrder <- logical(length(aa))
+  i <- 1
+  newOrd <- numeric(0)
+  for (i in seq_along(aa)) {
+    dif <- setdiff(seq_along(aa), newOrd)
+    for (j in dif) {
+      isCorrectOrder <- !any(aa[[j]] %in% names(aa)[dif])
+      if (isCorrectOrder) {
+        newOrd <- c(newOrd, j)
+        i <- i + 1
+        break
       }
     }
   }
+  needToReload <- aa[newOrd]
+
+  needToReloadNames <- names(needToReload)
+  names(needToReloadNames) <- needToReloadNames
   if (isTRUE(load_all)) {
-    for (i in unique(c(pkgs, pkgsToUnload2))) {
-      theDir <- file.path(gitPath, i)
-      if (!dir.exists(theDir))
-        warning(theDir, " does not exist. ", basename(theDir), " cannot be unloaded and reloaded.")
-      try(devtools::load_all(theDir), silent = FALSE)
-    }
+    out <- lapply(rev(needToReloadNames), function(i) {
+      if (i != "SpaDES") {
+        out <- try(devtools::load_all(file.path(gitPath, i)), silent = TRUE)
+        if (is(out, "try-error")) {
+          message(i, " is not a local package in ", gitPath, "; loading via install.packages...")
+          out <- require(i, character.only = TRUE)
+        }
+
+      }
+    })
   }
+  invisible(out)
 }
 
 errorHadAbort <- function(errorMsg, pkg, branch, aborted) {

@@ -22,7 +22,8 @@ Imports:
     devtools,
     digest,
     igraph,
-    reproducible
+    reproducible,
+    testthat
 Suggests:
     knitr,
     rmarkdown
