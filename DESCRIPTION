@@ -15,12 +15,17 @@ Authors@R: c(
     role = "cph")
     )
 Depends:
-    R (>= 3.3.0)
+    R (>= 3.3)
 Imports:
     crayon,
     data.table,
+    devtools,
+    digest,
     igraph,
-    reproducible,
+    reproducible
+Suggests:
+    knitr,
+    rmarkdown
 Encoding: UTF-8
 Language: en-CA
 License: GPL-3

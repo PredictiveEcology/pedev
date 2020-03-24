@@ -11,7 +11,7 @@ install:
   ps: Bootstrap
 
 cache:
-  - C:\RLibrary
+  - C:\RLibrary -> appveyor_cache.txt
 
 # Adapt as necessary starting from here
 
@@ -31,7 +31,7 @@ environment:
   - R_VERSION: release
 
   - R_VERSION: oldrel
-    RTOOLS_VERSION: 34
+    RTOOLS_VERSION: 35
 
   - R_VERSION: 3.4.4
     RTOOLS_VERSION: 34
