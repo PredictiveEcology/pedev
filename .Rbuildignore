@@ -8,3 +8,4 @@
 ^\.travis\.yml$
 ^LICENSE$
 ^\.github$
+^codecov\.yml$
