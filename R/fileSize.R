@@ -6,12 +6,12 @@ globalVariables(c(":=", "fileSize", "fileSizeWOLinks", "size"))
 #' on disk: there is only one copy of the data and two pointers to
 #' the data.
 #'
+#' @inheritParams utils::object.size
 #' @param path The path to evaluate file sizes in. Must be a directory.
 #' @param recursive Logical indicating whether to search recursively.
 #'
 #' @export
 #' @rdname fileSize
-#' @inheritParams utils::object.size
 file.sizeWOLinks <- function(path = ".", units = "auto", recursive = FALSE) {
   basePath <- path
   if (recursive) {
