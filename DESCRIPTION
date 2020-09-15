@@ -2,9 +2,9 @@ Package: pedev
 Type: Package
 Title: Predictive Ecology Development Tools
 Description: Miscellaneous development tools developed by the Predictive Ecology Group
-  (<http://predictiveecology.org>).
+  (<https://predictiveecology.org>).
 URL: 
-    http://pedev.predictiveecology.org,
+    https://pedev.predictiveecology.org,
     https://github.com/PredictiveEcology/pedev
 Date: 2020-03-04
 Version: 0.0.1.9004
