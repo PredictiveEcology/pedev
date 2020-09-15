@@ -29,6 +29,8 @@ file.sizeCompare(path = ".", units = "auto", recursive = TRUE)
     If \code{standard = "auto"}, any of the "legacy" and \acronym{IEC}
     units are allowed.
     See \sQuote{Formatting and printing object sizes} for details.}
+
+\item{recursive}{Logical indicating whether to search recursively.}
 }
 \description{
 If two files are hardlinks, they don't actually take up extra space

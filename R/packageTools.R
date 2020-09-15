@@ -2,7 +2,8 @@
 #'
 #' Fetches all branches, then pulls the identified branch from git,
 #' then runs a digest on the local folders. If that digest is different
-#' as a previous one, then the function will run \code{devtools::install}.
+#' as a previous one, then the function will run
+#' \code{devtools::install(dependencies = FALSE, reload = FALSE, quick = TRUE, ...)}.
 #' This should be safe even in cases where local files have changed. If
 #' they were uncommitted, Git will error, and nothing will be pulled,
 #' and if they were committed, then it will try a merge. If the automoated
@@ -21,17 +22,18 @@
 #' @param cacheRepo The location where subsequent calls will store their history.
 #'   To be most effective, this should be "persistent", and not part of any
 #'   other cacheRepo.
-#' @param branches A vector of branch names to pull from, \emph{in reverse order}
+#' @param branch A vector of branch names to pull from, \emph{in reverse order}
 #'    so that the first one is the active branch after this function call finishes.
 #'    Default is \code{c("development", "master")}, so it will pull from master,
 #'    then development. If one of them does not exist, it will try, deteremine
 #'    it doesn't exist, skip it and go to next branch.
+#' @inheritParams devtools::install
 #' @param fetch Logical. Should it fetch before pulling.
-#' @param submodules Logical. VERY EXPERIMENTAL. \code{TRUE} would mean pull all
+#' @param submodule Logical. VERY EXPERIMENTAL. \code{TRUE} would mean pull all
 #'   submodules... the problem is that branch gets complicated.
 #' @param ... Passed to \code{devtools::install}
 #' @importFrom reproducible CacheDigest Cache
-#' @importFrom crayon yellow bgBlack green
+#' @importFrom crayon yellow bgBlack green white bgBlue
 #' @importFrom digest digest
 #' @examples
 #' \dontrun{
@@ -44,12 +46,15 @@
 #' # Will update and install all development branches of all repositories
 #' #   in ~/GitHub folder
 #' pedev::updateGit(dir("~/GitHub"))
+#'
 #' }
 updateGit <- function(pkgs = NULL,
                       install = TRUE,
                       branch = c("development", "master"),
                       cacheRepo = getOption("pedev.cacheRepo", "~/.pedevCache"),
                       fetch = TRUE, submodule = FALSE,
+                      quick = TRUE, dependencies = FALSE,
+                      reload = FALSE,
                       ...) {
   oldWd <- getwd()
   on.exit(setwd(oldWd), add = TRUE)
@@ -60,6 +65,7 @@ updateGit <- function(pkgs = NULL,
   aborted <- list()
   unfinished <- list()
   on.exit({
+    setwd(oldWd)
     if (length(aborted)) {
       message(crayon::magenta(
         "                                                        \n",
@@ -94,75 +100,105 @@ updateGit <- function(pkgs = NULL,
       message(crayon::bgBlack(crayon::yellow("updating ", i)))
       if (dirExistsA) {
         setwd(pkgDir)
+        isGitRepo <- file.exists(file.path(pkgDir, ".git"))
       } else if (dirExistsB) {
         setwd(insidePkg)
+        isGitRepo <- file.exists(file.path(insidePkg, ".git"))
       } else if (dirExistsC) {
         setwd(pkgDir)
+        isGitRepo <- file.exists(file.path(pkgDir, ".git"))
       }
 
-      if (isTRUE(fetch)) {
-        cmd1 <- "git fetch"
-        message("  ", cmd1)
-        system(cmd1, intern = TRUE)
-      }
-      anyBranchExists <- FALSE
-      for (branch in rev(branches)) {
-        cmd1 <- paste("checkout", branch)
-        message("  ", cmd1)
-        test1 <- suppressWarnings(system2("git", args = cmd1, stdout = TRUE, stderr = TRUE))
-        message("    ", paste(test1, collapse = "\n"))
-        if (any(grepl("error", c(test1)))) {
-          aborted <- errorHadAbort(test1, i, branch, aborted)
-          next
+      if (isTRUE(isGitRepo)) {
+        if (isTRUE(fetch)) {
+          cmd1 <- "git fetch"
+          message("  ", cmd1)
+          system(cmd1, intern = TRUE)
         }
+        anyBranchExists <- FALSE
+        for (branch in rev(branches)) {
+          cmd1 <- paste("checkout", branch)
+          test1 <- suppressWarnings(system2("git", args = cmd1, stdout = TRUE, stderr = TRUE))
+          message("    ", paste(test1, collapse = "\n"))
+          if (any(grepl("error", c(test1)))) {
+            aborted <- errorHadAbort(test1, i, branch, aborted)
+            next
+          }
 
-        lenUnfinished <- length(unfinished)
-        unfinished <- unfinished(test1, i, branch, unfinished,
-                                 expectedMsg = paste0("(up.to.date)|(",branch,")"))
+          lenUnfinished <- length(unfinished)
+          unfinished <- unfinished(test1, i, branch, unfinished,
+                                   expectedMsg = paste0("(up.to.date)|(",branch,")"))
 
-        cmd1 <- "pull"
-        message("  ", cmd1)
-        test2 <- suppressWarnings(system2("git", args = cmd1, stdout = TRUE, stderr = TRUE))
-        message("    ", paste(test2, collapse = "\n"))
-        anyBranchExists <- TRUE
-        if (any(grepl("error", c(test2)))) {
-          aborted <- errorHadAbort(test2, i, branch, aborted)
-          next
-        }
+          cmd1 <- "pull"
+          message("  ", cmd1)
+          test2 <- suppressWarnings(system2("git", args = cmd1, stdout = TRUE, stderr = TRUE))
+          message("    ", paste(test2, collapse = "\n"))
+          anyBranchExists <- TRUE
+          if (any(grepl("error", c(test2)))) {
+            aborted <- errorHadAbort(test2, i, branch, aborted)
+            next
+          }
 
-        if (isTRUE(submodule)) {
           if (file.exists(".gitmodules")) {
-            message("running submodule updates -- VERY EXPERIMENTAL")
-            message("- checking out & pulling the branches indicated in .gitmodules")
-            gitCheckoutEachBranchCmd <- paste("submodule foreach -q --recursive 'branch=\"$(git config -f",
-                                              "$toplevel/.gitmodules submodule.$name.branch)\";",
-                                              "echo $name && git checkout $branch && git pull'")
-            if (.Platform$OS.type != "windows") {
-              test1e <- system2("git", gitCheckoutEachBranchCmd, stdout = TRUE, stderr = TRUE)
-              message("   ", lapply(test1e, paste, "\n   "))
+            if (isTRUE(submodule)) {
+              message("running submodule updates -- VERY EXPERIMENTAL")
+              message("- checking out & pulling the branches indicated in .gitmodules")
+              gitCheckoutEachBranchCmd <- paste("submodule foreach -q --recursive 'branch=\"$(git config -f",
+                                                "$toplevel/.gitmodules submodule.$name.branch)\";",
+                                                "echo $name && git checkout $branch && git pull'")
+              if (.Platform$OS.type != "windows") {
+                test1e <- system2("git", gitCheckoutEachBranchCmd, stdout = TRUE, stderr = TRUE)
+                message("   ", lapply(test1e, paste, "\n   "))
+              } else {
+                # Have to make a temporary .bat and .sh file so command can work
+                updateGitTxt <- "updateGit"
+                tmpSh <- paste0(updateGitTxt, i, "_", branch, ".sh")
+                tmpBat <- paste0(updateGitTxt, i, "_", branch, ".bat")
+                # Delete
+                on.exit({unlink(tmpSh); unlink(tmpBat)}, add = TRUE)
+                cat(file = tmpSh, fill = FALSE,
+                    paste("#!/bin/bash",
+                          paste("git", gitCheckoutEachBranchCmd), sep = "\n"))
+                gitBashExePath <- list()
+                gitBashExePath[[1]] <- "C:\\Program Files (x86)\\Git\\git-bash.exe"
+                gitBashExePath[[2]] <- "C:\\Program Files\\Git\\git-bash.exe"
+                gitBashExists <- sapply(gitBashExePath, file.exists)
+                gitBashExePath <- if (!any(gitBashExists)) {
+                  gitBashExePathTry <- suppressWarnings(shell("where git-bash.exe", intern = TRUE))
+                  if (grepl("INFO: Could not", gitBashExePathTry)) {
+                    warning("git-bash.exe is not available in your PATH. Please add it. ",
+                            "This means that submodules didn't get updated. ",
+                            "Already tried to find it in:\n  ", paste(unlist(gitBashExePath), collapse = "\n  "))
+                  }
+                  gitBashExePathTry
+                } else {
+                  gitBashExePath[gitBashExists][[1]]
+                }
+                if (file.exists(gitBashExePath)) {
+                  cat(file = tmpBat, paste0('cmd /c "',gitBashExePath,'" -c ', #--cd-to-home
+                                           paste0("./",tmpSh)
+                  ))
+                  shell(tmpBat, intern = TRUE)
+                }
+                unlink(tmpSh); unlink(tmpBat)
+              }
             } else {
-              # Have to make a temporary .bat and .sh file so command can work
-              tmpSh <- basename(tempfile(fileext = ".sh"))
-              tmpBat <- basename(tempfile(fileext = ".bat"))
-              on.exit({unlink(tmpSh); unlink(tmpBat)}, add = TRUE)
-              cat(file = tmpSh, fill = FALSE,
-                  paste("#!/bin/bash",
-                        paste("git", gitCheckoutEachBranchCmd), sep = "\n"))
-              cat(file = tmpBat, paste('cmd /c "C:\\Progra~2\\Git\\git-bash.exe -c', #--cd-to-home
-                                       paste0("./",tmpSh)
-              ))
-              shell(tmpBat, intern = TRUE)
+              message(crayon::white(crayon::bgBlue("This is a git repository with submodules, but submodule is FALSE;",
+                      "not updating submodules")))
             }
           }
+
+
+          unfinished <- unfinished(test2, i, branch, unfinished,
+                                   expectedMsg = paste0("(up.to.date)|(can be fast)|(Already on)"))
+
         }
 
-        unfinished <- unfinished(test2, i, branch, unfinished,
-                                 expectedMsg = paste0("(up.to.date)|(can be fast)|(Already on)"))
-
-      }
-
-      if (!anyBranchExists) {
-        next
+        if (!anyBranchExists) {
+          next
+        }
+      } else {
+        message("Folder ", i, " is not a git repo; skipping")
       }
       isAPackage <- length(dir(pattern = "DESCRIPTION")) > 0
 
@@ -176,13 +212,15 @@ updateGit <- function(pkgs = NULL,
                             reproducible::checkPath(cacheRepo, create = TRUE))
           #suppressPackageStartupMessages(require(reproducible))
           suppressMessages(dig <- reproducible::Cache(reproducible::CacheDigest, d2,
-                           userTags = i))
+                                                      userTags = i))
           #try(detach("package:reproducible", unload = TRUE, character.only = TRUE), silent = TRUE)
           options(opts)
 
           if (attr(dig, ".Cache")$newCache) {
             message("  installing ... ")
-            devtools::install(dependencies = FALSE, reload = FALSE, ...)
+            devtools::install(dependencies = dependencies,
+                              reload = reload,
+                              quick = quick, ...)
           } else {
             message("  not reinstalling; already installed this version")
           }
@@ -196,7 +234,8 @@ updateGit <- function(pkgs = NULL,
 
 .pkgDepsGraph <- function(pkgs) {
   dt <- lapply(pkgs, function(pkg) {
-    deps <- pkgs[pkgs %in% reproducible::pkgDep(pkg)[[1]]]
+    deps1 <- tryCatch(reproducible::pkgDep(pkg), error = function(x) "")
+    deps <- pkgs[pkgs %in% deps1[[1]]]
     if (NROW(deps))
       data.table::data.table(pkg = pkg,
                              depends = deps)
@@ -207,13 +246,16 @@ updateGit <- function(pkgs = NULL,
 }
 
 
-#' A verion of devtools::load_all that detaches dependencies
+#' A version of \code{devtools::load_all} that detaches dependencies
 #'
-#' This is very idiosyncratic for the Predictive Ecology group
-#' @export
+#' This is very idiosyncratic for the Predictive Ecology group.
+#'
 #' @param pkgs A character vector of the package(s) to run "devtools::load_all"
 #' @param load_all Logical. If \code{FALSE}, then this function will only
-#'   detach the packages necessary
+#'   detach the packages necessary.
+#' @param gitPath CHaracter giving the directory containing GitHub repos.
+#'
+#' @export
 reload_all <- function(pkgs, load_all = TRUE, gitPath = "~/GitHub") {
   deps <- c(pkgs, tools::dependsOnPkgs(pkgs))
   nsLoaded <- deps[unlist(lapply(deps, isNamespaceLoaded))]
@@ -295,10 +337,24 @@ errorHadAbort <- function(errorMsg, pkg, branch, aborted) {
 }
 
 unfinished <- function(msg, pkg, branch, unfinished, expectedMsg) {
-  if (!all(grepl(expectedMsg, msg))) {
+  thisPkgNameAndBrnch <- paste0(pkg, "@", branch)
+  if (!all(grepl(expectedMsg, msg)) ) {
     unfinishedCur <- list(msg)
-    names(unfinishedCur) <- paste0(pkg, "@", branch)
+    names(unfinishedCur) <- thisPkgNameAndBrnch
     unfinished <- append(unfinished, unfinishedCur)
+    ybiaMsg <- "Your branch is ahead"
+    if (any(grepl("Your branch is up to date", msg) || any(grepl(ybiaMsg, msg)))) {
+      whYBIA <- grep(ybiaMsg, msg)
+      needCommitMsg <- FALSE
+      if (length(whYBIA) == 1)
+        if (isTRUE(whYBIA == 1))
+          needCommitMsg <- TRUE
+      unfinished[[thisPkgNameAndBrnch]] <- append(unfinished[[thisPkgNameAndBrnch]],
+                                                  paste0(" -- You may want to ","commit and "[needCommitMsg],
+                                                         "push these changes to origin --"))
+    }
   }
+  # The second part of the if below is saying that you already have everything locally,
+  #   so it isn't unfinished -- it can install
   unfinished
 }

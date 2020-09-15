@@ -2,7 +2,7 @@
 % Please edit documentation in R/packageTools.R
 \name{reload_all}
 \alias{reload_all}
-\title{A verion of devtools::load_all that detaches dependencies}
+\title{A version of \code{devtools::load_all} that detaches dependencies}
 \usage{
 reload_all(pkgs, load_all = TRUE, gitPath = "~/GitHub")
 }
@@ -10,8 +10,10 @@ reload_all(pkgs, load_all = TRUE, gitPath = "~/GitHub")
 \item{pkgs}{A character vector of the package(s) to run "devtools::load_all"}
 
 \item{load_all}{Logical. If \code{FALSE}, then this function will only
-detach the packages necessary}
+detach the packages necessary.}
+
+\item{gitPath}{CHaracter giving the directory containing GitHub repos.}
 }
 \description{
-This is very idiosyncratic for the Predictive Ecology group
+This is very idiosyncratic for the Predictive Ecology group.
 }
