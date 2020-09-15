@@ -250,14 +250,12 @@ updateGit <- function(pkgs = NULL,
 #'
 #' This is very idiosyncratic for the Predictive Ecology group.
 #'
-#' @export
 #' @param pkgs A character vector of the package(s) to run "devtools::load_all"
-#' @param allPkgs A character vector of the packages that are "reverse" depdencies
-#'     of \code{pkgs}. Since this isn't easy to actually derive automatically, this function
-#'     relies on this manual vector. The defaults here are the collection of PredictiveEcology
-#'     packages.
 #' @param load_all Logical. If \code{FALSE}, then this function will only
-#'   detach the packages necessary
+#'   detach the packages necessary.
+#' @param gitPath CHaracter giving the directory containing GitHub repos.
+#'
+#' @export
 reload_all <- function(pkgs, load_all = TRUE, gitPath = "~/GitHub") {
   deps <- c(pkgs, tools::dependsOnPkgs(pkgs))
   nsLoaded <- deps[unlist(lapply(deps, isNamespaceLoaded))]

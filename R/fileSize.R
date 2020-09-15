@@ -1,11 +1,16 @@
+globalVariables(c(":=", "fileSize", "fileSizeWOLinks", "size"))
+
 #' Calculate file sizes omitting hard links
 #'
 #' If two files are hardlinks, they don't actually take up extra space
 #' on disk: there is only one copy of the data and two pointers to
 #' the data.
+#'
+#' @param path The path to evaluate file sizes in. Must be a directory.
+#' @param recursive Logical indicating whether to search recursively.
+#'
 #' @export
 #' @rdname fileSize
-#' @param path The path to evaluate file sizes in. Must be a directory.
 #' @inheritParams utils::object.size
 file.sizeWOLinks <- function(path = ".", units = "auto", recursive = FALSE) {
   basePath <- path
@@ -51,9 +56,12 @@ file.sizeWOLinks <- function(path = ".", units = "auto", recursive = FALSE) {
 #' @rdname fileSize
 #' @importFrom data.table data.table
 #' @importFrom testthat capture_messages
+#' @importFrom utils capture.output
 file.sizeCompare <- function(path = ".", units = "auto", recursive = TRUE) {
   basePath <- path
-  mess <- capture_messages(a <- try(file.sizeWOLinks(path = path, units = units, recursive = recursive)))
+  mess <- capture_messages({
+    a <- try(file.sizeWOLinks(path = path, units = units, recursive = recursive))
+  })
   if (is(a, "try-error")) {
     stop("Can't run this function because can't access 'ls' function (a unix function)")
   }

@@ -1,6 +1,6 @@
 Package: pedev
 Type: Package
-Title: Predictive Ecology development tools
+Title: Predictive Ecology Development Tools
 Description: Miscellaneous development tools developed by the Predictive Ecology Group
   (<http://predictiveecology.org>).
 URL: 
@@ -22,8 +22,10 @@ Imports:
     devtools,
     digest,
     igraph,
+    methods,
     reproducible,
-    testthat
+    testthat,
+    tools
 Suggests:
     knitr,
     rmarkdown
@@ -34,4 +36,4 @@ VignetteBuilder: knitr, rmarkdown
 BugReports: https://github.com/PredictiveEcology/pedev/issues
 ByteCompile: yes
 LazyData: true
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.1
