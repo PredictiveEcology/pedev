@@ -7,7 +7,7 @@ URL:
     https://pedev.predictiveecology.org,
     https://github.com/PredictiveEcology/pedev
 Date: 2024-01-31
-Version: 0.0.1.9004
+Version: 0.0.1.9005
 Authors@R: c(
     person("Eliot J B", "McIntire", email = "eliot.mcintire@canada.ca",
     role = c("aut", "cre"), comment=c(ORCID = "0000-0002-6914-8316")),
