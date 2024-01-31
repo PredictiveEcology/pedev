@@ -49,8 +49,8 @@ file.sizeWOLinks <- function(path = ".", units = "auto", recursive = FALSE) {
   invisible(d)
 }
 
-#' \code{file.sizeCompare} will run \code{file.sizeWOLinks} and
-#' \code{file.size} to compare the two outputs. Any difference will be
+#' `file.sizeCompare` will run `file.sizeWOLinks` and
+#' `file.size` to compare the two outputs. Any difference will be
 #' due to hard links.
 #' @export
 #' @rdname fileSize

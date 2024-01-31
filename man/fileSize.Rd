@@ -22,8 +22,8 @@ file.sizeCompare(path = ".", units = "auto", recursive = TRUE)
 	\code{"B"}, \code{"KiB"}, \code{"MiB"}, \code{"GiB"},
 	\code{"TiB"}, \code{"PiB"}, \code{"EiB"}, \code{"ZiB"} and \code{"YiB"}.}
       \item{\code{standard = "SI"}:}{
-	\code{"B"}, \code{"kB"}, \code{"MB"}, \code{"GB"}, \code{"TB"},
-	\code{"PB"}, \code{"EB"}, \code{"ZB"} and \code{"YB"}.}
+	\code{"B"}, \code{"kB"}, \code{"MB"}, \code{"GB"}, \code{"TB"}, \code{"PB"},
+	\code{"EB"}, \code{"ZB"}, \code{"YB"}, \code{"RB"}, and \code{"QB"}.}
     }
     For all standards, \code{unit = "auto"} is also allowed.
     If \code{standard = "auto"}, any of the "legacy" and \acronym{IEC}

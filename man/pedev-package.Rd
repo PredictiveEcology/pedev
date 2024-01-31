@@ -6,13 +6,12 @@
 \alias{pedev-package}
 \title{pedev}
 \description{
-Miscellaneous development tools developed by the Predictive Ecology Group
-  (<http://predictiveecology.org>).
+Miscellaneous development tools developed by the Predictive Ecology Group (\url{https://predictiveecology.org}).
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{http://pedev.predictiveecology.org}
+  \item \url{https://pedev.predictiveecology.org}
   \item \url{https://github.com/PredictiveEcology/pedev}
   \item Report bugs at \url{https://github.com/PredictiveEcology/pedev/issues}
 }
