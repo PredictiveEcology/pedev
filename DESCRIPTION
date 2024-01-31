@@ -23,6 +23,7 @@ Imports:
     digest,
     igraph,
     methods,
+    Require,
     reproducible,
     testthat,
     tools
