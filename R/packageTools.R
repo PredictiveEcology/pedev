@@ -3,7 +3,7 @@
 #' Fetches all branches, then pulls the identified branch from git,
 #' then runs a digest on the local folders. If that digest is different
 #' as a previous one, then the function will run
-#' \code{devtools::install(dependencies = FALSE, reload = FALSE, quick = TRUE, ...)}.
+#' `devtools::install(dependencies = FALSE, reload = FALSE, quick = TRUE, ...)`.
 #' This should be safe even in cases where local files have changed. If
 #' they were uncommitted, Git will error, and nothing will be pulled,
 #' and if they were committed, then it will try a merge. If the automoated
@@ -14,24 +14,24 @@
 #'   the path names of the packages. i.e., must be absolute or relative
 #'   path. Defaults to current directory. It will also check in "..",
 #'   i.e., one folder up from the current active folder if it doesn't find
-#'   \code{pkgs} in the current folder.
+#'   `pkgs` in the current folder.
 #' @export
-#' @param install Logical. If TRUE, then it will run \code{devtools::install} if
-#'   there is new content. If \code{branch} was length > 1, only the active,
+#' @param install Logical. If TRUE, then it will run `devtools::install` if
+#'   there is new content. If `branch` was length > 1, only the active,
 #'   i.e., first branch, will be installed.
 #' @param cacheRepo The location where subsequent calls will store their history.
 #'   To be most effective, this should be "persistent", and not part of any
 #'   other cacheRepo.
-#' @param branch A vector of branch names to pull from, \emph{in reverse order}
+#' @param branch A vector of branch names to pull from, *in reverse order*
 #'    so that the first one is the active branch after this function call finishes.
-#'    Default is \code{c("development", "master")}, so it will pull from master,
+#'    Default is `c("development", "master")`, so it will pull from master,
 #'    then development. If one of them does not exist, it will try, deteremine
 #'    it doesn't exist, skip it and go to next branch.
 #' @inheritParams devtools::install
 #' @param fetch Logical. Should it fetch before pulling.
-#' @param submodule Logical. VERY EXPERIMENTAL. \code{TRUE} would mean pull all
+#' @param submodule Logical. VERY EXPERIMENTAL. `TRUE` would mean pull all
 #'   submodules... the problem is that branch gets complicated.
-#' @param ... Passed to \code{devtools::install}
+#' @param ... Passed to `devtools::install`
 #' @importFrom reproducible CacheDigest Cache
 #' @importFrom crayon yellow bgBlack green white bgBlue
 #' @importFrom digest digest
@@ -234,7 +234,7 @@ updateGit <- function(pkgs = NULL,
 
 .pkgDepsGraph <- function(pkgs) {
   dt <- lapply(pkgs, function(pkg) {
-    deps1 <- tryCatch(reproducible::pkgDep(pkg), error = function(x) "")
+    deps1 <- tryCatch(Require::pkgDep(pkg), error = function(x) "")
     deps <- pkgs[pkgs %in% deps1[[1]]]
     if (NROW(deps))
       data.table::data.table(pkg = pkg,
@@ -246,12 +246,12 @@ updateGit <- function(pkgs = NULL,
 }
 
 
-#' A version of \code{devtools::load_all} that detaches dependencies
+#' A version of `devtools::load_all` that detaches dependencies
 #'
 #' This is very idiosyncratic for the Predictive Ecology group.
 #'
 #' @param pkgs A character vector of the package(s) to run "devtools::load_all"
-#' @param load_all Logical. If \code{FALSE}, then this function will only
+#' @param load_all Logical. If `FALSE`, then this function will only
 #'   detach the packages necessary.
 #' @param gitPath CHaracter giving the directory containing GitHub repos.
 #'

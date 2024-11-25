@@ -6,8 +6,8 @@ Description: Miscellaneous development tools developed by the Predictive Ecology
 URL: 
     https://pedev.predictiveecology.org,
     https://github.com/PredictiveEcology/pedev
-Date: 2020-03-04
-Version: 0.0.1.9004
+Date: 2024-01-31
+Version: 0.0.1.9005
 Authors@R: c(
     person("Eliot J B", "McIntire", email = "eliot.mcintire@canada.ca",
     role = c("aut", "cre"), comment=c(ORCID = "0000-0002-6914-8316")),
@@ -15,7 +15,7 @@ Authors@R: c(
     role = "cph")
     )
 Depends:
-    R (>= 3.3)
+    R (>= 4.1)
 Imports:
     crayon,
     data.table,
@@ -23,6 +23,7 @@ Imports:
     digest,
     igraph,
     methods,
+    Require,
     reproducible,
     testthat,
     tools
@@ -37,4 +38,5 @@ VignetteBuilder: knitr, rmarkdown
 BugReports: https://github.com/PredictiveEcology/pedev/issues
 ByteCompile: yes
 LazyData: true
-RoxygenNote: 7.1.1
+RoxygenNote: 7.3.1
+Roxygen: list(markdown = TRUE)
