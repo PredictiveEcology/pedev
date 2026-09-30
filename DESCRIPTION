@@ -31,6 +31,9 @@ Suggests:
     covr,
     knitr,
     rmarkdown
+Remotes:
+    PredictiveEcology/reproducible@development,
+    PredictiveEcology/Require@development
 Encoding: UTF-8
 Language: en-CA
 License: GPL-3
